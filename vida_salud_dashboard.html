@@ -1,0 +1,4367 @@
+<!doctype html>
+<html lang="es" data-theme="default">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VidaSalud: Bento Grid & Neuro-Inclusión</title>
+    <meta
+      name="description"
+      content="Dashboard médico accesible e interactivo basado en Bento Grid y principios de diseño neuro-inclusivo."
+    />
+
+    <!-- Google Fonts: Outfit (para títulos premium) e Inter (para lectura clara) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Annyang for voice commands (Spanish es) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
+
+    <style>
+      /* -------------------------------------------------------------
+       CSS VARIABLES (AESTHETIC TOKENS)
+       ------------------------------------------------------------- */
+      :root {
+        /* Colors */
+        --color-canvas: #f8fafc; /* Slate 50 - Relaxing Canvas */
+        --color-card-bg: #ffffff; /* Pure White */
+        --color-slate-900: #0f172a; /* Slate 900 - Premium Text/Bg */
+        --color-slate-700: #334155; /* Slate 700 - Body Text */
+        --color-slate-500: #64748b; /* Slate 500 - Muted Text */
+        --color-slate-400: #94a3b8; /* Slate 400 - Secondary info */
+        --color-slate-100: #f1f5f9; /* Slate 100 - Metrics BG */
+        --color-teal: #0f766e; /* Accent Teal - Health/Trust */
+        --color-teal-hover: #0d635c;
+        --color-teal-light: #ebf5f4; /* Light teal for badges */
+        --color-blue: #0369a1; /* Accent Blue - Telemedicine */
+        --color-blue-hover: #025a8b;
+        --color-emergency: #e11d48; /* Emergency Red/Amber - High Alert */
+        --color-emergency-hover: #c2143b;
+        --color-emergency-light: #fff1f2;
+        --color-purple: #5b21b6; /* Accent Purple - Progress/Sessions */
+        --color-purple-light: #f5f3ff; /* Light Purple for progress track */
+        --color-green-success: #10b981; /* Green success */
+
+        /* High Contrast (Normal state vars that will override) */
+        --color-hc-bg: #000000;
+        --color-hc-fg: #ffffff;
+        --color-hc-yellow: #ffff00;
+        --color-hc-neon: #39ff14; /* Neon Accent */
+
+        /* Typography */
+        --font-display:
+          "Inter", sans-serif; /* Inter for robust neuro-accessibility */
+        --font-body: "Inter", sans-serif;
+        --base-font-size: 100%; /* Dynamic base */
+
+        /* Grid and Spacing */
+        --bento-gap: 24px;
+        --card-radius: 24px;
+
+        /* Target Click Safe Zones */
+        --target-size: 48px;
+      }
+
+      /* -------------------------------------------------------------
+       GLOBAL RESET & BASE
+       ------------------------------------------------------------- */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        font-size: var(--base-font-size);
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: var(--font-body);
+        background-color: var(--color-canvas);
+        color: var(--color-slate-900);
+        line-height: 1.5;
+        padding-bottom: 80px; /* Space for sticky/floating elements */
+        overflow-x: hidden;
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--color-slate-900);
+      }
+
+      p {
+        color: var(--color-slate-700);
+      }
+
+      button,
+      a {
+        font-family: var(--font-body);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+      }
+
+      /* -------------------------------------------------------------
+       ACCESSIBILITY RULES (OUTLINES & A11Y FOCUS SYSTEM)
+       ------------------------------------------------------------- */
+      /* Explicit Blue Outline of 3px with 2px offset for Keyboard Focus */
+      *:focus-visible {
+        outline: 3px solid #3b82f6 !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4) !important;
+      }
+
+      /* Target clickable size minimums (48px) and safe spaces (16px gap) */
+      .btn-target-safe {
+        min-height: var(--target-size);
+        min-width: 140px;
+        padding: 12px 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        gap: 8px;
+      }
+
+      /* -------------------------------------------------------------
+       LAYOUT STRUCTURE
+       ------------------------------------------------------------- */
+      .app-header {
+        background: var(--color-card-bg);
+        border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.02);
+        transition: background-color 0.3s ease;
+      }
+
+      .navbar-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-badge {
+        background: rgba(15, 118, 110, 0.08);
+        color: var(--color-teal);
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: var(--color-slate-700);
+        font-weight: 500;
+        font-size: 0.95rem;
+        position: relative;
+        padding: 8px 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--color-teal);
+        transition: width 0.25s ease;
+      }
+
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      /* Mobile Hamburger Trigger */
+      .menu-hamburguesa-btn {
+        display: none;
+        background: transparent;
+        border: none;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-slate-900);
+        cursor: pointer;
+        border-radius: 8px;
+      }
+
+      .menu-hamburguesa-btn:hover {
+        background: var(--color-slate-100);
+      }
+
+      /* Main Container */
+      .main-content {
+        max-width: 1400px;
+        margin: 32px auto;
+        padding: 0 24px;
+        position: relative;
+      }
+
+      .breadcrumb-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: var(--color-slate-500);
+        margin-bottom: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .breadcrumb-row span.active {
+        color: var(--color-teal);
+      }
+
+      /* -------------------------------------------------------------
+       BENTO GRID SYSTEM (100% RESPONSIVE FLEXBOX FALLBACK)
+       ------------------------------------------------------------- */
+      .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: var(--bento-gap);
+        position: relative;
+      }
+
+      /* Card Standard Styles */
+      .bento-card {
+        background: var(--color-card-bg);
+        border-radius: var(--card-radius);
+        padding: 32px;
+        box-shadow:
+          0 10px 25px -5px rgba(15, 23, 42, 0.03),
+          0 8px 10px -6px rgba(15, 23, 42, 0.03);
+        border: 1px solid rgba(15, 23, 42, 0.03);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition:
+          transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+          box-shadow 0.3s ease,
+          border-color 0.3s ease;
+      }
+
+      .bento-card:hover {
+        transform: translateY(-4px);
+        box-shadow:
+          0 20px 25px -5px rgba(15, 23, 42, 0.06),
+          0 10px 10px -6px rgba(15, 23, 42, 0.06);
+        border-color: rgba(15, 23, 42, 0.06);
+      }
+
+      /* SECTION 1: HERO DE ANCLAJE VISUAL (ROW 1) */
+      .bento-card.hero-anchor {
+        grid-column: span 7;
+        background: #ffffff;
+        min-height: 400px;
+      }
+
+      .bento-card.telemedicina-dark {
+        grid-column: span 5;
+        background: var(--color-slate-900);
+        color: #ffffff;
+        min-height: 400px;
+      }
+
+      /* SECTION 2: FUNDAMENTOS DEL BENTO (ROW 2) */
+      .bento-card.fundamento-modulo {
+        grid-column: span 4;
+        min-height: 250px;
+      }
+
+      .bento-card.fundamento-curvatura {
+        grid-column: span 4;
+        min-height: 250px;
+      }
+
+      .bento-card.fundamento-gaps {
+        grid-column: span 4;
+        min-height: 250px;
+      }
+
+      /* SECTION 3: ACCESIBILIDAD COGNITIVA Y FISICA (ROW 3) */
+      .bento-card.beneficios-mental {
+        grid-column: span 4;
+        min-height: 380px;
+      }
+
+      .bento-card.recetas-digitales {
+        grid-column: span 4;
+        min-height: 380px;
+      }
+
+      .bento-card.centros-medicos {
+        grid-column: span 4;
+        min-height: 380px;
+      }
+
+      /* SECTION 4: INTEGRATED A11Y CARD (ROW 4) */
+      .bento-card.integrated-a11y-card {
+        grid-column: span 12;
+        background: #ffffff;
+        color: var(--color-slate-900);
+        border: 1px solid rgba(15, 23, 42, 0.03);
+        padding: 32px;
+        min-height: 280px;
+      }
+
+      /* SECTION 5: REFLEXION FINAL (ROW 5 - THREE SEPARATE BENTO CARDS) */
+      .bento-card.conclusion-card {
+        grid-column: span 4;
+        min-height: 240px;
+        background: #ffffff;
+      }
+
+      /* Responsive Grid (1440px -> 1200px -> 768px) */
+      @media (max-width: 1200px) {
+        .bento-card.hero-anchor {
+          grid-column: span 12;
+        }
+        .bento-card.telemedicina-dark {
+          grid-column: span 12;
+        }
+        .bento-card.fundamento-modulo {
+          grid-column: span 6;
+        }
+        .bento-card.fundamento-curvatura {
+          grid-column: span 6;
+        }
+        .bento-card.fundamento-gaps {
+          grid-column: span 12;
+        }
+        .bento-card.beneficios-mental {
+          grid-column: span 6;
+        }
+        .bento-card.recetas-digitales {
+          grid-column: span 6;
+        }
+        .bento-card.centros-medicos {
+          grid-column: span 12;
+        }
+        .bento-card.conclusion-card {
+          grid-column: span 6 !important;
+        }
+        .bento-card.conclusion-card:last-child {
+          grid-column: span 12 !important;
+        }
+      }
+
+      /* SOLID AND ROBUST MOBILE RESPONSIVELAYOUT (GUARANTEED NO SQUEEZING) */
+      @media (max-width: 768px) {
+        .menu-hamburguesa-btn {
+          display: flex;
+        }
+        .nav-links {
+          display: none;
+        }
+        .logo-badge {
+          display: none;
+        }
+
+        /* Switch to flexible block column layout on mobile to completely override grid squeezing rules */
+        .bento-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          width: 100%;
+        }
+
+        .bento-card {
+          width: 100% !important;
+          min-height: auto !important;
+          padding: 24px;
+          grid-column: unset !important;
+        }
+
+        .navbar-container {
+          padding: 12px 16px;
+        }
+        .main-content {
+          margin: 16px auto;
+          padding: 0 16px;
+          width: 100%;
+        }
+        .metrics-grid-row {
+          grid-template-columns: 1fr !important;
+        }
+        .action-buttons-wrap > div {
+          min-width: 100% !important;
+        }
+      }
+
+      /* -------------------------------------------------------------
+       CARD DETAILED DESIGNS (COMPLETING INFO FROM FIGMA SPEC)
+       ------------------------------------------------------------- */
+      /* Design Explain Tag */
+      .design-explain-tag {
+        align-self: flex-start;
+        background: rgba(148, 163, 184, 0.1);
+        color: var(--color-slate-700);
+        font-size: 0.72rem;
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .design-explain-tag::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        background: var(--color-slate-900);
+        border-radius: 50%;
+        display: inline-block;
+      }
+
+      /* Hero Celeste */
+      .hero-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+        gap: 16px;
+      }
+
+      .hero-date-stamp {
+        font-size: 0.8rem;
+        color: var(--color-slate-500);
+        font-weight: 600;
+        background: var(--color-slate-100);
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .plan-pill {
+        background: var(--color-teal-light);
+        color: var(--color-teal);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.82rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 16px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .greeting-text {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--color-slate-900);
+        margin-bottom: 4px;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+
+      .hero-subtitle {
+        color: var(--color-slate-500);
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 24px;
+      }
+
+      .metrics-grid-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 28px;
+        width: 100%;
+      }
+
+      .metric-sub-block {
+        background: var(--color-slate-100);
+        padding: 12px;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .metric-value-title {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.15rem;
+        color: var(--color-slate-900);
+      }
+
+      .metric-value-desc {
+        font-size: 0.72rem;
+        color: var(--color-slate-500);
+        font-weight: 600;
+      }
+
+      .action-buttons-wrap {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+
+      .action-buttons-wrap > div {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      .btn-digital-card {
+        background: var(--color-teal);
+        color: #ffffff;
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .btn-digital-card:hover {
+        background: var(--color-teal-hover);
+        box-shadow: 0 8px 20px rgba(15, 118, 110, 0.2);
+      }
+
+      .btn-emergency {
+        background: var(--color-emergency);
+        color: #ffffff;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .btn-emergency:hover {
+        background: var(--color-emergency-hover);
+        box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
+      }
+
+      /* Telemedicina */
+      .telemed-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 12px;
+      }
+
+      .telemed-online-badge {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--color-green-success);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .telemed-badge {
+        font-size: 3rem;
+        font-weight: 800;
+        line-height: 1;
+        color: #ffffff;
+        margin-bottom: 2px;
+        letter-spacing: -0.04em;
+      }
+
+      .telemed-wait-desc {
+        color: var(--color-slate-400);
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 24px;
+      }
+
+      .doctor-callout-block {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 12px 16px;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        width: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .doctor-avatar-circle {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #0369a1;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+      }
+
+      .doctor-online-dot {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        background: var(--color-green-success);
+        border: 2px solid var(--color-slate-900);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+      }
+
+      .doctor-info-text h4 {
+        color: #ffffff;
+        font-size: 0.9rem;
+        margin: 0;
+        transition: color 0.3s ease;
+      }
+
+      .doctor-info-text p {
+        color: var(--color-slate-400);
+        font-size: 0.78rem;
+        margin: 0;
+        transition: color 0.3s ease;
+      }
+
+      .rating-wrap {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #fbbf24; /* Star Gold */
+        font-weight: 700;
+        font-size: 0.8rem;
+        margin-top: 2px;
+        transition: color 0.3s ease;
+      }
+
+      .btn-telemedicina {
+        background: var(--color-blue);
+        color: #ffffff;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .btn-telemedicina:hover {
+        background: var(--color-blue-hover);
+        box-shadow: 0 8px 20px rgba(3, 105, 161, 0.35);
+      }
+
+      /* Fundamentos Bento Grid (Módulo, Curvatura, Gaps) */
+      .fundamento-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--color-slate-100);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        color: var(--color-slate-900);
+        transition: all 0.3s ease;
+      }
+
+      .fundamento-card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+
+      .fundamento-card p {
+        font-size: 0.88rem;
+        color: var(--color-slate-700);
+        line-height: 1.45;
+      }
+
+      /* Row 3 - Mis Beneficios Card */
+      .benefit-item-row {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .benefit-header-subrow {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .benefit-header-subrow h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-slate-900);
+      }
+
+      .benefit-state-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 99px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .benefit-state-badge.purple-badge {
+        background: var(--color-purple-light);
+        color: var(--color-purple);
+      }
+
+      .benefit-state-badge.green-badge {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--color-green-success);
+      }
+
+      .benefit-state-badge.blue-badge {
+        background: rgba(3, 105, 161, 0.1);
+        color: var(--color-blue);
+      }
+
+      .progress-outer-bar {
+        background: var(--color-slate-100);
+        height: 8px;
+        border-radius: 99px;
+        overflow: hidden;
+        margin-top: 4px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .progress-fill-bar {
+        height: 100%;
+        border-radius: 99px;
+      }
+
+      .benefit-desc-label {
+        font-size: 0.75rem;
+        color: var(--color-slate-500);
+        font-weight: 500;
+        margin-top: 2px;
+      }
+
+      /* Recetas Digitales */
+      .receta-item-block {
+        background: var(--color-slate-100);
+        padding: 16px;
+        border-radius: 16px;
+        margin-top: 12px;
+        border: 1px solid rgba(15, 23, 42, 0.02);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        transition: all 0.3s ease;
+      }
+
+      .receta-heading-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .receta-number {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--color-slate-900);
+      }
+
+      .receta-status-pill {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .receta-status-pill.teal-pill {
+        background: var(--color-teal-light);
+        color: var(--color-teal);
+      }
+
+      .receta-details-text {
+        font-size: 0.78rem;
+        color: var(--color-slate-500);
+        font-weight: 600;
+      }
+
+      .receta-footer-text {
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .status-dot-green {
+        width: 6px;
+        height: 6px;
+        background: var(--color-green-success);
+        border-radius: 50%;
+        display: inline-block;
+        transition: all 0.3s ease;
+      }
+
+      .recetas-footer-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--color-teal);
+        margin-top: 16px;
+        align-self: flex-start;
+      }
+
+      /* Centros Médicos Card */
+      .clinicas-available-box {
+        background: var(--color-teal);
+        color: #ffffff;
+        padding: 16px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        width: 100%;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .clinicas-number-big {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.8rem;
+        line-height: 1;
+      }
+
+      .clinicas-number-desc {
+        font-size: 0.78rem;
+        font-weight: 600;
+        opacity: 0.95;
+        line-height: 1.3;
+      }
+
+      .clinica-row-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid var(--color-slate-100);
+        background: #ffffff;
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+      }
+
+      .clinica-info-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .clinica-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--color-slate-900);
+      }
+
+      .clinica-metadata {
+        font-size: 0.75rem;
+        color: var(--color-slate-500);
+        font-weight: 500;
+      }
+
+      .btn-ver-clinicas {
+        background: var(--color-teal-light);
+        color: var(--color-teal);
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      .btn-ver-clinicas:hover {
+        background: rgba(15, 118, 110, 0.15);
+      }
+
+      /* Integrated Accessibility Settings Card (White by default, turns black under high contrast) */
+      .integrated-a11y-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 32px;
+        width: 100%;
+        margin-top: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .integrated-a11y-grid {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+      }
+
+      .integrated-a11y-column {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .integrated-a11y-card h2 {
+        color: var(--color-slate-900);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.5rem;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        padding-bottom: 12px;
+        width: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .a11y-integrated-option {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+        transition: all 0.3s ease;
+      }
+
+      .a11y-integrated-info {
+        padding-right: 16px;
+      }
+
+      .a11y-integrated-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--color-slate-900);
+        transition: color 0.3s ease;
+      }
+
+      .a11y-integrated-desc {
+        font-size: 0.78rem;
+        color: var(--color-slate-500);
+        margin-top: 2px;
+        transition: color 0.3s ease;
+      }
+
+      /* Premium Custom Toggles (Integrated Card) */
+      .switch-label-int {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 28px;
+        flex-shrink: 0;
+      }
+
+      .switch-label-int input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .switch-slider-int {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: 0.3s;
+        border-radius: 34px;
+      }
+
+      .switch-slider-int:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      input:checked + .switch-slider-int {
+        background-color: var(--color-teal);
+      }
+
+      input:checked + .switch-slider-int:before {
+        transform: translateX(24px);
+      }
+
+      .text-resize-btn-group-int {
+        display: flex;
+        gap: 8px;
+        background: var(--color-slate-100);
+        padding: 6px;
+        border-radius: 12px;
+        width: 100%;
+        margin-top: 8px;
+        transition: all 0.3s ease;
+      }
+
+      .btn-resize-int {
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--color-slate-900);
+        min-height: 40px;
+        transition: all 0.25s ease;
+      }
+
+      .btn-resize-int.active {
+        background: #ffffff;
+        color: var(--color-purple);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      }
+
+      /* -------------------------------------------------------------
+       ACCESSIBILITY DRAWER & FLOATING TRIGGER BUTTON
+       ------------------------------------------------------------- */
+      .a11y-floating-trigger {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--color-purple);
+        color: #ffffff;
+        border: none;
+        box-shadow: 0 10px 25px rgba(91, 33, 182, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 999;
+        transition:
+          transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+          background-color 0.25s ease;
+      }
+
+      .a11y-floating-trigger:hover {
+        transform: scale(1.1);
+        background-color: #4c1d95;
+      }
+
+      .a11y-floating-trigger svg {
+        width: 30px;
+        height: 30px;
+      }
+
+      /* Backdrop Blur Overlay */
+      .sidebar-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 1001;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .sidebar-backdrop.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* Sliding Drawer (A11y Panel) */
+      .a11y-drawer {
+        position: fixed;
+        top: 0;
+        right: -420px; /* Hidden default */
+        width: 400px;
+        max-width: 90vw;
+        height: 100vh;
+        background: var(--color-card-bg);
+        box-shadow: -10px 0 40px rgba(15, 23, 42, 0.15);
+        z-index: 1002;
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        transition:
+          right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+          background-color 0.3s ease,
+          color 0.3s ease;
+      }
+
+      .a11y-drawer.open {
+        right: 0;
+      }
+
+      .drawer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        padding-bottom: 16px;
+      }
+
+      .drawer-header h2 {
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn-close-drawer {
+        background: var(--color-slate-100);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--color-slate-900);
+      }
+
+      .btn-close-drawer:hover {
+        background: #e2e8f0;
+      }
+
+      .drawer-section {
+        margin-bottom: 24px;
+      }
+
+      .drawer-section h3 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-slate-400);
+        margin-bottom: 16px;
+        border-left: 3px solid var(--color-purple);
+        padding-left: 8px;
+      }
+
+      /* Switch Style (Sidebar) */
+      .switch-label {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 28px;
+        flex-shrink: 0;
+      }
+
+      .switch-label input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .switch-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: 0.3s;
+        border-radius: 34px;
+      }
+
+      .switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      input:checked + .switch-slider {
+        background-color: var(--color-purple);
+      }
+
+      input:checked + .switch-slider:before {
+        transform: translateX(24px);
+      }
+
+      .a11y-option-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+      }
+
+      .a11y-option-info {
+        padding-right: 16px;
+      }
+
+      .a11y-option-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--color-slate-900);
+      }
+
+      .a11y-option-desc {
+        font-size: 0.78rem;
+        color: var(--color-slate-500);
+        margin-top: 2px;
+      }
+
+      /* Text Resizing Button Group */
+      .text-resize-btn-group {
+        display: flex;
+        gap: 8px;
+        background: var(--color-slate-100);
+        padding: 6px;
+        border-radius: 12px;
+      }
+
+      .btn-resize {
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--color-slate-900);
+        min-height: 40px;
+      }
+
+      .btn-resize.active {
+        background: var(--color-card-bg);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        color: var(--color-purple);
+      }
+
+      /* Micro Consola por Voz Visual */
+      .voice-console {
+        background: #000000;
+        color: #39ff14;
+        font-family: monospace;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        margin-top: 16px;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        border: 1px solid rgba(57, 255, 20, 0.3);
+        max-height: 120px;
+        overflow-y: auto;
+      }
+
+      .voice-console.active {
+        display: flex;
+      }
+
+      .voice-console-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+        padding-bottom: 4px;
+        margin-bottom: 4px;
+        font-weight: bold;
+      }
+
+      .voice-indicator-dot {
+        width: 8px;
+        height: 8px;
+        background: #e11d48;
+        border-radius: 50%;
+        animation: pulse-red 1.2s infinite;
+      }
+
+      @keyframes pulse-red {
+        0% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7);
+        }
+        70% {
+          transform: scale(1);
+          box-shadow: 0 0 0 6px rgba(225, 29, 72, 0);
+        }
+        100% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(225, 29, 72, 0);
+        }
+      }
+
+      /* -------------------------------------------------------------
+       MOBILE HAMBURGER NAVIGATION DRAWER
+       ------------------------------------------------------------- */
+      .mobile-drawer-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.3);
+        backdrop-filter: blur(4px);
+        z-index: 1004;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .mobile-drawer-backdrop.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .mobile-nav-drawer {
+        position: fixed;
+        top: 0;
+        right: -320px;
+        width: 300px;
+        height: 100vh;
+        background: #ffffff;
+        box-shadow: -10px 0 35px rgba(15, 23, 42, 0.15);
+        z-index: 1005;
+        display: flex;
+        flex-direction: column;
+        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .mobile-nav-drawer.open {
+        right: 0;
+      }
+
+      .mobile-drawer-header {
+        background: var(--color-teal);
+        color: #ffffff;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .mobile-drawer-header-title {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .mobile-drawer-close-btn {
+        background: transparent;
+        border: none;
+        color: #ffffff;
+        font-size: 1.5rem;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+      }
+
+      .mobile-drawer-close-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .mobile-drawer-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        background: var(--color-slate-100);
+      }
+
+      .mobile-profile-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--color-teal);
+        color: #ffffff;
+        font-family: var(--font-display);
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mobile-profile-info h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-slate-900);
+        margin: 0;
+      }
+
+      .mobile-profile-info p {
+        font-size: 0.78rem;
+        color: var(--color-slate-500);
+        margin: 0;
+      }
+
+      .mobile-drawer-menu-list {
+        display: flex;
+        flex-direction: column;
+        padding: 12px 8px;
+      }
+
+      .mobile-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        color: var(--color-slate-700);
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+        cursor: pointer;
+      }
+
+      .mobile-menu-item:hover,
+      .mobile-menu-item.active {
+        background: var(--color-slate-100);
+        color: var(--color-teal);
+      }
+
+      .mobile-menu-item svg {
+        width: 20px;
+        height: 20px;
+        color: var(--color-slate-500);
+      }
+
+      .mobile-menu-item:hover svg,
+      .mobile-menu-item.active svg {
+        color: var(--color-teal);
+      }
+
+      .mobile-drawer-divider {
+        height: 1px;
+        background: rgba(15, 23, 42, 0.08);
+        margin: 8px 16px;
+      }
+
+      .mobile-menu-subitem {
+        display: flex;
+        flex-direction: column;
+        padding: 10px 16px;
+        border-radius: 10px;
+        margin-bottom: 4px;
+        cursor: pointer;
+      }
+
+      .mobile-menu-subitem:hover {
+        background: var(--color-slate-100);
+      }
+
+      .mobile-subitem-title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        font-size: 0.92rem;
+        color: var(--color-slate-900);
+      }
+
+      .mobile-subitem-title-row svg {
+        width: 20px;
+        height: 20px;
+        color: var(--color-slate-500);
+      }
+
+      .mobile-subitem-desc {
+        font-size: 0.75rem;
+        color: var(--color-slate-500);
+        margin-left: 32px;
+        margin-top: 2px;
+      }
+
+      /* -------------------------------------------------------------
+       ACCESSIBILITY MODES (BODY WRAPPER OVERRIDES - PERFECT CONTRAST)
+       ------------------------------------------------------------- */
+
+      /* 1. HIGH CONTRAST (Alto Contraste) - Black canvas, yellow/white text, Neon markers */
+      body.high-contrast {
+        background-color: var(--color-hc-bg) !important;
+        color: var(--color-hc-fg) !important;
+        background-image: none !important;
+      }
+
+      body.high-contrast .app-header {
+        background-color: var(--color-hc-bg) !important;
+        border-bottom: 2px solid var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast h1,
+      body.high-contrast h2,
+      body.high-contrast h3,
+      body.high-contrast h4,
+      body.high-contrast p,
+      body.high-contrast a,
+      body.high-contrast span,
+      body.high-contrast div {
+        /* Force white color where not explicitly overridden */
+        color: var(--color-hc-fg);
+      }
+
+      /* Target header left logo in High Contrast */
+      body.high-contrast .logo-wrapper a,
+      body.high-contrast .logo-wrapper span {
+        color: var(--color-hc-fg) !important;
+      }
+
+      /* Override bento cards including grids and gradients */
+      body.high-contrast .bento-card {
+        background: #121212 !important;
+        background-color: #121212 !important;
+        border: 2px solid var(--color-hc-fg) !important;
+        box-shadow: none !important;
+      }
+
+      body.high-contrast .bento-card.conclusion-card {
+        background: #121212 !important;
+        border: 2px solid var(--color-hc-fg) !important;
+        border-left: 6px solid var(--color-hc-yellow) !important;
+      }
+
+      /* Strict Contrast for all descriptions of the last bento cards */
+      body.high-contrast .bento-card p {
+        color: #ffffff !important;
+      }
+
+      body.high-contrast .bento-card.telemedicina-dark {
+        background: #000000 !important;
+        border: 2px solid var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast .bento-card.integrated-a11y-card {
+        background: #000000 !important;
+        border: 3px double var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .design-explain-tag {
+        background-color: #222 !important;
+        color: var(--color-hc-yellow) !important;
+        border: 1px solid var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .design-explain-tag::before {
+        background-color: var(--color-hc-neon) !important;
+      }
+
+      /* Strict A11y fixes for metric sub-blocks, plan-pill, and date-stamps */
+      body.high-contrast .plan-pill {
+        background: #000000 !important;
+        border: 2px solid var(--color-hc-fg) !important;
+        color: var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .hero-date-stamp {
+        background: #000000 !important;
+        border: 2px solid var(--color-hc-fg) !important;
+        color: var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .metric-sub-block {
+        background-color: #000000 !important;
+        border: 2px solid var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast .metric-value-title {
+        color: var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .metric-value-desc {
+        color: #ffffff !important;
+      }
+
+      body.high-contrast .receta-item-block {
+        background-color: #222 !important;
+        border: 1px solid var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast .clinicas-available-box {
+        background: #000000 !important;
+        border: 2px solid var(--color-hc-neon) !important;
+      }
+
+      body.high-contrast .clinicas-number-big {
+        color: var(--color-hc-neon) !important;
+      }
+
+      body.high-contrast .clinica-row-item {
+        background: #121212 !important;
+        border: 1px solid var(--color-hc-fg) !important;
+      }
+
+      /* Strict A11y fixes for Telemedicine Doctor callout and Wait averages */
+      body.high-contrast .telemed-online-badge {
+        background: #000000 !important;
+        border: 2px solid var(--color-hc-neon) !important;
+        color: var(--color-hc-neon) !important;
+      }
+
+      body.high-contrast .doctor-callout-block {
+        background: #111111 !important;
+        border: 2px solid var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast .doctor-info-text p,
+      body.high-contrast .doctor-info-text h4,
+      body.high-contrast .rating-wrap {
+        color: #ffffff !important;
+      }
+
+      body.high-contrast .rating-wrap svg {
+        fill: var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .doctor-online-dot {
+        background: var(--color-hc-neon) !important;
+        border-color: #000000 !important;
+      }
+
+      body.high-contrast .status-dot-green {
+        background: var(--color-hc-neon) !important;
+      }
+
+      /* Strict A11y overrides for icons in DNA Bento cards section */
+      body.high-contrast .fundamento-icon {
+        background: #000000 !important;
+        border: 2px solid var(--color-hc-fg) !important;
+        color: var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast .fundamento-icon svg {
+        color: var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast .btn-target-safe {
+        background-color: var(--color-hc-bg) !important;
+        color: var(--color-hc-yellow) !important;
+        border: 2px solid var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .btn-target-safe:hover {
+        background-color: var(--color-hc-yellow) !important;
+        color: #000 !important;
+      }
+
+      body.high-contrast .btn-emergency {
+        background-color: #ff0000 !important;
+        color: #ffffff !important;
+        border: 2px solid #ffffff !important;
+      }
+
+      body.high-contrast .btn-digital-card,
+      body.high-contrast .btn-telemedicina {
+        background: #000000 !important;
+        color: var(--color-hc-yellow) !important;
+        border: 2px solid var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .a11y-floating-trigger {
+        background-color: var(--color-hc-neon) !important;
+        color: #000 !important;
+        box-shadow: none !important;
+        border: 2px solid #000 !important;
+      }
+
+      body.high-contrast .a11y-drawer {
+        background-color: #121212 !important;
+        border-left: 3px solid var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .mobile-nav-drawer {
+        background-color: #121212 !important;
+      }
+
+      body.high-contrast .mobile-drawer-header {
+        background-color: #222 !important;
+        border-bottom: 2px solid var(--color-hc-yellow) !important;
+      }
+
+      body.high-contrast .progress-outer-bar {
+        background: #333 !important;
+        border: 1px solid #fff !important;
+      }
+
+      body.high-contrast .progress-fill-bar {
+        background: var(--color-hc-neon) !important;
+      }
+
+      body.high-contrast .receta-status-pill {
+        background: #111 !important;
+        color: var(--color-hc-neon) !important;
+        border: 1px solid var(--color-hc-neon) !important;
+      }
+
+      body.high-contrast .benefit-state-badge {
+        background: #222 !important;
+        border: 1px solid var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast .btn-resize-int {
+        background: #111 !important;
+        border: 1px solid var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast .btn-resize-int.active {
+        background: var(--color-hc-yellow) !important;
+        color: #000 !important;
+      }
+
+      /* Override dynamic text resizing card styles for HC */
+      body.high-contrast .a11y-integrated-title {
+        color: #ffffff !important;
+      }
+      body.high-contrast .a11y-integrated-desc {
+        color: var(--color-slate-400) !important;
+      }
+      body.high-contrast .text-resize-btn-group-int {
+        background: #111111 !important;
+        border: 1px solid var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast *:focus-visible {
+        outline: 4px solid var(--color-hc-neon) !important;
+        outline-offset: 4px !important;
+      }
+
+      /* 2. REDUCE MOTION (Reducir Animaciones) */
+      body.reduce-animations,
+      body.reduce-animations *,
+      body.reduce-animations *::before,
+      body.reduce-animations *::after {
+        animation-delay: -1ms !important;
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        background-attachment: initial !important;
+        scroll-behavior: auto !important;
+        transition-delay: 0s !important;
+        transition-duration: 0s !important;
+        transition-property: none !important;
+      }
+
+      /* -------------------------------------------------------------
+       VISTA DISEÑADOR (DESIGN INSPECTOR GRAPHICAL OVERLAYS)
+       ------------------------------------------------------------- */
+      /* Toggle switch for design system inspector */
+      .inspector-nav-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(15, 118, 110, 0.05);
+        padding: 8px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(15, 118, 110, 0.15);
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--color-teal);
+        min-height: var(--target-size);
+      }
+
+      .inspector-nav-toggle.active {
+        background: var(--color-teal);
+        color: #ffffff;
+      }
+
+      /* General Inspector Active Overlays */
+      .inspector-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      body.inspector-active .inspector-overlay {
+        opacity: 1;
+      }
+
+      /* Click Targets 48px Green Overlay Highlight (For simulation only) */
+      .target-highlight-box {
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        border: 2px dashed #10b981;
+        background: rgba(16, 185, 129, 0.05);
+        border-radius: 14px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      body.targets-highlighted .target-highlight-box {
+        opacity: 1;
+      }
+
+      .target-label-spec {
+        position: absolute;
+        top: -18px;
+        left: 0;
+        background: #10b981;
+        color: #ffffff;
+        font-family: monospace;
+        font-size: 0.62rem;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-weight: bold;
+      }
+
+      /* Blueprint grid background for canvas when inspector active */
+      body.inspector-active {
+        background-image:
+          linear-gradient(rgba(3, 105, 161, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(3, 105, 161, 0.03) 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+
+      /* Beautiful side visual callout nodes explaining Bento ADN (ONLY this will show in inspector mode) */
+      .a11y-node-explainer {
+        background: var(--color-blue);
+        color: #ffffff;
+        font-size: 0.78rem;
+        padding: 12px 16px;
+        border-radius: 12px;
+        position: absolute;
+        pointer-events: auto;
+        opacity: 0;
+        transform: scale(0.9);
+        transition:
+          opacity 0.3s ease,
+          transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 8px 20px rgba(3, 105, 161, 0.25);
+        max-width: 250px;
+        z-index: 12;
+        line-height: 1.4;
+        border-left: 4px solid var(--color-teal);
+      }
+
+      body.inspector-active .a11y-node-explainer {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .a11y-node-explainer.pos-hero {
+        top: 12px;
+        right: 12px;
+      }
+      .a11y-node-explainer.pos-telemed {
+        bottom: 12px;
+        left: 12px;
+        background: var(--color-slate-900);
+        border-left-color: var(--color-blue);
+      }
+      .a11y-node-explainer.pos-gaps {
+        bottom: 12px;
+        right: 12px;
+      }
+      .a11y-node-explainer.pos-progress {
+        top: 12px;
+        right: 12px;
+        background: var(--color-purple);
+        border-left-color: var(--color-purple-light);
+      }
+      .a11y-node-explainer.pos-receta {
+        top: 12px;
+        right: 12px;
+        background: var(--color-teal);
+        border-left-color: var(--color-teal-light);
+      }
+
+      /* Conclusion cards explainer override to prevent vertical stretching bug (clear bottom height constraints) */
+      .a11y-node-explainer.pos-conclusion {
+        top: 12px !important;
+        left: 12px !important;
+        bottom: auto !important;
+        height: auto !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- -------------------------------------------------------------
+       NAVBAR / TOP HEADER
+       ------------------------------------------------------------- -->
+    <header class="app-header">
+      <div class="navbar-container">
+        <div class="logo-wrapper">
+          <a
+            href="#"
+            aria-label="Página de inicio de VidaSalud"
+            class="greeting-target-focus"
+            style="display: flex; align-items: center; gap: 8px"
+          >
+            <svg
+              style="width: 28px; height: 28px; color: var(--color-teal)"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              ></path>
+            </svg>
+            <span
+              style="
+                font-family: var(--font-display);
+                font-weight: 800;
+                font-size: 1.45rem;
+                color: var(--color-slate-900);
+              "
+              >VidaSalud</span
+            >
+          </a>
+          <span class="logo-badge" id="logo-sub-badge"
+            >Bento &amp; Neuro-Inclusión</span
+          >
+        </div>
+
+        <nav class="nav-links" aria-label="Enlaces primarios">
+          <a href="#inicio" aria-current="page" id="link-inicio">Inicio</a>
+          <a href="#accesibilidad" id="link-a11y">Accesibilidad</a>
+          <a href="#cobertura" id="link-cobertura">Cobertura</a>
+          <a href="#pagos" id="link-pagos">Pagos</a>
+          <a href="#historial" id="link-historial">Historial</a>
+        </nav>
+
+        <div class="nav-actions">
+          <!-- Visual Inspector Switch -->
+          <button
+            class="inspector-nav-toggle"
+            id="inspectorToggleBtn"
+            aria-pressed="false"
+            aria-label="Activar Inspector de Sistema de Diseño"
+          >
+            <svg
+              style="width: 20px; height: 20px; margin-right: 6px"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              ></path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              ></path>
+            </svg>
+            <span>Modo Inspector</span>
+          </button>
+
+          <!-- Hamburger Icon for Mobile -->
+          <button
+            class="menu-hamburguesa-btn"
+            id="hamburgerBtn"
+            aria-label="Abrir menú de navegación móvil"
+          >
+            <svg
+              style="width: 24px; height: 24px"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- -------------------------------------------------------------
+       MAIN DASHBOARD & COGNITIVE SCAFFOLD
+       ------------------------------------------------------------- -->
+    <main class="main-content">
+      <!-- Breadcrumb -->
+      <div class="breadcrumb-row">
+        <span>Panel Principal</span>
+        <span>/</span>
+        <span class="active">Bienvenida, Celeste</span>
+      </div>
+
+      <div class="bento-grid" id="mainBentoGrid">
+        <!-- ================= SECTION 1: HERO DE ANCLAJE VISUAL ================= -->
+        <!-- Greeting / Cobertura Details -->
+        <section
+          class="bento-card hero-anchor"
+          aria-labelledby="greetingHeading"
+          data-tts="Tarjeta de Bienvenida. Hola Celeste. Tu seguro Plan Familiar Plus está Activo. Tienes 98 por ciento de cobertura, 4 miembros registrados y vigencia hasta Diciembre de 2026. Botón de tarjeta digital y botón de llamadas de emergencia disponibles."
+        >
+          <!-- Design Specification Overlay Layer (EXPLAINERS ONLY) -->
+          <div class="inspector-overlay">
+            <div class="a11y-node-explainer pos-hero">
+              <strong>Anclaje Visual Principal</strong><br />
+              La tarjeta de bienvenida actúa como ancla visual inmediata de
+              mayor tamaño para evitar desorientación del usuario.
+            </div>
+          </div>
+
+          <div class="hero-top-row">
+            <div class="plan-pill">
+              <svg
+                style="width: 14px; height: 14px"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2.5"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                ></path>
+              </svg>
+              <span class="plan-text">Plan Familiar Plus — Activo</span>
+            </div>
+            <div class="hero-date-stamp" id="heroDateStamp">
+              Jue., 28 de mayo de 2026
+            </div>
+          </div>
+
+          <div class="card-header-with-tag">
+            <h1 class="greeting-text" id="greetingHeading">Hola, Celeste 👋</h1>
+            <p class="hero-subtitle" id="heroSubtitle">
+              Tu salud es nuestra prioridad. Todo está al día.
+            </p>
+          </div>
+
+          <div
+            class="metrics-grid-row"
+            aria-label="Estadísticas clave de salud"
+          >
+            <div class="metric-sub-block">
+              <span class="metric-value-title metric-coverage">98%</span>
+              <span class="metric-value-desc" id="lblCoverage"
+                >Cobertura activa</span
+              >
+            </div>
+            <div class="metric-sub-block">
+              <span class="metric-value-title metric-members">4</span>
+              <span class="metric-value-desc" id="lblMembers"
+                >Miembros cubiertos</span
+              >
+            </div>
+            <div class="metric-sub-block">
+              <span class="metric-value-title metric-validity">Dic. 2026</span>
+              <span class="metric-value-desc" id="lblValidity"
+                >Vigencia del plan</span
+              >
+            </div>
+          </div>
+
+          <div class="action-buttons-wrap">
+            <div style="position: relative">
+              <button
+                class="btn-target-safe btn-digital-card"
+                id="digitalCardBtn"
+                aria-label="Visualizar Tarjeta Digital de Cobertura médica"
+              >
+                <span style="display: flex; align-items: center; gap: 8px">
+                  <svg
+                    style="width: 20px; height: 20px"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    ></path>
+                  </svg>
+                  <span class="btn-dig-txt">Tarjeta Digital de Cobertura</span>
+                </span>
+                <svg
+                  style="width: 16px; height: 16px"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2.5"
+                    d="M9 5l7 7-7 7"
+                  ></path>
+                </svg>
+              </button>
+              <div class="target-highlight-box">
+                <span class="target-label-spec">Min 48px Táctil</span>
+              </div>
+            </div>
+            <div style="position: relative">
+              <a
+                href="tel:+5493541575723"
+                class="btn-target-safe btn-emergency"
+                id="emergencyBtn"
+                aria-label="Llamar a Asistencia Médica de Emergencia las 24 horas, los 7 días de la semana"
+              >
+                <svg
+                  style="width: 20px; height: 20px; margin-right: 6px"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                  ></path>
+                </svg>
+                <span class="emergency-btn-text"
+                  >Asistencia de Emergencia 24/7</span
+                >
+              </a>
+              <div class="target-highlight-box">
+                <span class="target-label-spec">Min 48px Táctil</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Telemedicina Card (Dark UI) -->
+        <section
+          class="bento-card telemedicina-dark"
+          aria-labelledby="telemedHeading"
+          data-tts="Tarjeta de Telemedicina 24 horas disponible. Tiempo de espera menor a 3 minutos para iniciar videoconsulta inmediata. Botón Iniciar video consulta ahora disponible."
+        >
+          <!-- Design Specification Overlay Layer (EXPLAINERS ONLY) -->
+          <div class="inspector-overlay">
+            <div class="a11y-node-explainer pos-telemed">
+              <strong>Contraste Semántico</strong><br />
+              El fondo oscuro (#0F172A) con texto blanco proporciona el nivel
+              máximo de foco y contraste visual para la acción médica inmediata.
+            </div>
+          </div>
+
+          <div class="telemed-header-row">
+            <!-- Camera icon -->
+            <div
+              style="
+                background: rgba(255, 255, 255, 0.08);
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <svg
+                style="width: 20px; height: 20px; color: #0369a1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 00-2 2z"
+                ></path>
+              </svg>
+            </div>
+            <!-- En linea badge -->
+            <div class="telemed-online-badge">
+              <span class="status-dot-green"></span>
+              <span class="lblOnlineNow">En línea ahora</span>
+            </div>
+          </div>
+
+          <div class="card-header-with-tag">
+            <p
+              class="telemed-desc"
+              style="
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--color-slate-400);
+                margin-bottom: 2px;
+              "
+            >
+              Telemedicina 24/7 disponible
+            </p>
+            <h2 class="telemed-badge" id="telemedHeading">&lt; 3 min</h2>
+            <p class="telemed-wait-desc" id="telemedWaitDesc">
+              Tiempo promedio de espera actual
+            </p>
+          </div>
+
+          <!-- Doctor block -->
+          <div class="doctor-callout-block">
+            <div class="doctor-avatar-circle">
+              <span>AM</span>
+              <div class="doctor-online-dot"></div>
+            </div>
+            <div class="doctor-info-text">
+              <h4 class="doc-name">Dra. Ana Morales</h4>
+              <p class="doc-specialty">Medicina General</p>
+              <div class="rating-wrap">
+                <svg
+                  style="width: 14px; height: 14px; fill: currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  ></path>
+                </svg>
+                <span>4.9 (2,847)</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="position: relative; width: 100%">
+            <button
+              class="btn-target-safe btn-telemedicina"
+              id="telemedBtn"
+              aria-label="Iniciar video consulta médica inmediata ahora"
+            >
+              <svg
+                style="width: 20px; height: 20px; margin-right: 4px"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 00-2 2z"
+                ></path>
+              </svg>
+              <span class="btn-tel-txt">Iniciar video consulta ahora</span>
+            </button>
+            <div class="target-highlight-box">
+              <span class="target-label-spec">Min 48px Táctil</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 2: FUNDAMENTOS ADN BENTO ================= -->
+        <!-- Card: Módulo Autónomo -->
+        <section
+          class="bento-card fundamento-modulo"
+          aria-labelledby="moduloHeading"
+          data-tts="Tarjeta Fundamento del Bento: Módulo Autónomo. Cada elemento tiene límites definidos que evitan la sobrecarga mental y facilitan la segmentación visual."
+        >
+          <div>
+            <div class="fundamento-icon">
+              <svg
+                style="width: 24px; height: 24px"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                ></path>
+              </svg>
+            </div>
+            <h3 id="moduloHeading">Módulo Autónomo</h3>
+            <p style="margin-top: 8px">
+              Las tarjetas Bento aíslan e independizan la información en bloques
+              lógicos. Esto evita la fatiga por lectura lineal y ayuda en el
+              procesamiento visual de personas neurodivergentes.
+            </p>
+          </div>
+          <span
+            style="
+              font-size: 0.75rem;
+              font-weight: 700;
+              color: var(--color-slate-400);
+              text-transform: uppercase;
+              margin-top: 16px;
+            "
+            >Vocabulario Bento</span
+          >
+        </section>
+
+        <!-- Card: Radio de Curvatura -->
+        <section
+          class="bento-card fundamento-curvatura"
+          aria-labelledby="curvaturaHeading"
+          data-tts="Tarjeta Fundamento del Bento: Radio de Curvatura de 24 píxeles. Brinda una estética orgánica y amable que reduce el estrés cognitivo del usuario."
+        >
+          <div>
+            <div class="fundamento-icon">
+              <svg
+                style="width: 24px; height: 24px"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"
+                ></path>
+              </svg>
+            </div>
+            <h3 id="curvaturaHeading">Radio de Curvatura</h3>
+            <p style="margin-top: 8px">
+              El uso estricto de esquinas redondeadas a `24px` aporta un
+              lenguaje visual blando y seguro. Está demostrado científicamente
+              que las curvas reducen la respuesta neurológica de alarma.
+            </p>
+          </div>
+          <span
+            style="
+              font-size: 0.75rem;
+              font-weight: 700;
+              color: var(--color-slate-400);
+              text-transform: uppercase;
+              margin-top: 16px;
+            "
+            >Esquinas Orgánicas</span
+          >
+        </section>
+
+        <!-- Card: Gaps (Espaciados) -->
+        <section
+          class="bento-card fundamento-gaps"
+          aria-labelledby="gapsHeading"
+          data-tts="Tarjeta Fundamento del Bento: Gaps o Espaciados de 24 píxeles. Funcionan como zonas de amortiguación cognitiva para evitar el abarrotamiento."
+        >
+          <!-- Design Specification Overlay Layer (EXPLAINERS ONLY) -->
+          <div class="inspector-overlay">
+            <div class="a11y-node-explainer pos-gaps">
+              <strong>Gaps Buffer</strong><br />
+              Los espaciados entre tarjetas sirven como zona de descanso visual
+              para que la mente asimile cada módulo autónomo.
+            </div>
+          </div>
+          <div>
+            <div class="fundamento-icon">
+              <svg
+                style="width: 24px; height: 24px"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                ></path>
+              </svg>
+            </div>
+            <h3 id="gapsHeading">Gaps de Amortiguación</h3>
+            <p style="margin-top: 8px">
+              Las brechas de aire de `24px` reducen la sobrepoblación
+              informacional. Permiten que la mirada respire en el tránsito de
+              una tarjeta a otra, promoviendo la relajación visual.
+            </p>
+          </div>
+          <span
+            style="
+              font-size: 0.75rem;
+              font-weight: 700;
+              color: var(--color-slate-400);
+              text-transform: uppercase;
+              margin-top: 16px;
+            "
+            >Descanso Cognitivo</span
+          >
+        </section>
+
+        <!-- ================= SECTION 3: ACCESIBILIDAD FISICA Y COGNITIVA (COMPLETED GRID) ================= -->
+        <!-- Card: Mis Beneficios -->
+        <section
+          class="bento-card beneficios-mental"
+          aria-labelledby="mentalHeading"
+          data-tts="Tarjeta Mis Beneficios. Contiene información sobre Salud Mental con 3 de 8 sesiones completadas, Atención Preventiva disponible, y Dental y Visión con 5 de 5 visitas."
+        >
+          <!-- Design Specification Overlay Layer -->
+          <div class="inspector-overlay">
+            <div class="a11y-node-explainer pos-progress">
+              <strong>Alfabetización Visual</strong><br />
+              Las barras de progreso ayudan a la rápida absorción del dato sin
+              forzar la lectura del texto.
+            </div>
+          </div>
+
+          <div class="benefit-card-content">
+            <span
+              class="design-explain-tag"
+              style="
+                background: rgba(91, 33, 182, 0.08);
+                color: var(--color-purple);
+              "
+              >Mis Beneficios</span
+            >
+
+            <!-- Salud Mental -->
+            <div class="benefit-item-row" style="margin-top: 8px">
+              <div class="benefit-header-subrow">
+                <h4 id="mentalHeading">Salud Mental</h4>
+                <span
+                  class="benefit-state-badge purple-badge mental-health-progress"
+                  >3 de 8 sesiones</span
+                >
+              </div>
+              <div class="progress-outer-bar" aria-label="3 de 8 sesiones">
+                <div
+                  class="progress-fill-bar"
+                  style="width: 37.5%; background: var(--color-purple)"
+                ></div>
+              </div>
+              <span class="benefit-desc-label" id="mentalDesc"
+                >5 sesiones restantes este mes</span
+              >
+            </div>
+
+            <!-- Atención Preventiva -->
+            <div class="benefit-item-row">
+              <div class="benefit-header-subrow">
+                <h4 id="preventivaHeading">Atención Preventiva</h4>
+                <span class="benefit-state-badge green-badge tblPreventiveState"
+                  >Disponible</span
+                >
+              </div>
+              <div class="progress-outer-bar" aria-label="100% disponible">
+                <div
+                  class="progress-fill-bar"
+                  style="width: 100%; background: var(--color-green-success)"
+                ></div>
+              </div>
+              <span class="benefit-desc-label" id="preventivaDesc"
+                >Chequeo anual — Programe hoy</span
+              >
+            </div>
+
+            <!-- Dental y Visión -->
+            <div class="benefit-item-row">
+              <div class="benefit-header-subrow">
+                <h4 id="dentalHeading">Dental y Visión</h4>
+                <span
+                  class="benefit-state-badge blue-badge dental-health-progress"
+                  >5 / 5 visitas</span
+                >
+              </div>
+              <div class="progress-outer-bar" aria-label="5 visitas de 5">
+                <div
+                  class="progress-fill-bar"
+                  style="width: 100%; background: var(--color-blue)"
+                ></div>
+              </div>
+              <span class="benefit-desc-label" id="dentalDesc"
+                >Se renueva en junio 2026</span
+              >
+            </div>
+          </div>
+        </section>
+
+        <!-- Card: Recetas Digitales -->
+        <section
+          class="bento-card recetas-digitales"
+          aria-labelledby="recetasHeading"
+          data-tts="Tarjeta de Recetas Digitales activas. Amoxicilina de 500mg en camino y Omeprazol de 20mg surtido. Botón para probar tamaño de zona segura disponible."
+        >
+          <div class="inspector-overlay">
+            <div class="a11y-node-explainer pos-receta">
+              <strong>Módulo Autónomo</strong><br />
+              Asegura que cada servicio tenga su propio micro-ecosistema aislado
+              y libre de distracciones.
+            </div>
+          </div>
+
+          <div class="benefit-card-content">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <span
+                class="design-explain-tag"
+                style="
+                  background: rgba(15, 118, 110, 0.08);
+                  color: var(--color-teal);
+                "
+                >Recetas Digitales</span
+              >
+              <svg
+                style="width: 20px; height: 20px; color: var(--color-slate-400)"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                ></path>
+              </svg>
+            </div>
+
+            <!-- Receta 1 -->
+            <div class="receta-item-block">
+              <div class="receta-heading-row">
+                <span class="receta-number rec1-title">Receta #482109</span>
+                <span class="receta-status-pill teal-pill rec1-badge"
+                  >En camino</span
+                >
+              </div>
+              <span class="receta-details-text rec1-desc"
+                >Antibiótico — Amoxicilina 500mg</span
+              >
+              <span
+                class="receta-footer-text"
+                style="color: var(--color-teal)"
+                id="rec1Footer"
+              >
+                <svg
+                  style="width: 14px; height: 14px"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                Envío gratis — Entrega hoy
+              </span>
+            </div>
+
+            <!-- Receta 2 -->
+            <div class="receta-item-block" style="margin-top: 10px">
+              <div class="receta-heading-row">
+                <span class="receta-number rec2-title">Receta #481890</span>
+                <span
+                  class="receta-status-pill rec2-badge"
+                  style="background: #e2e8f0; color: var(--color-slate-700)"
+                  >Surtida</span
+                >
+              </div>
+              <span class="receta-details-text rec2-desc"
+                >Omeprazol 20mg — Recurrente</span
+              >
+              <span
+                class="receta-footer-text"
+                style="color: var(--color-slate-500)"
+                id="rec2Footer"
+              >
+                <span class="status-dot-green"></span>
+                Surtida — 25 abr. 2026
+              </span>
+            </div>
+
+            <a
+              href="#recetas"
+              class="recetas-footer-link"
+              id="recetasFooterLink"
+            >
+              <span>Ver todas las recetas</span>
+              <svg
+                style="width: 14px; height: 14px"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2.5"
+                  d="M9 5l7 7-7 7"
+                ></path>
+              </svg>
+            </a>
+          </div>
+        </section>
+
+        <!-- Card: Centros Médicos -->
+        <section
+          class="bento-card centros-medicos"
+          aria-labelledby="clinicasHeading"
+          data-tts="Tarjeta de Centros Médicos disponibles. Más de 120 clínicas disponibles en tu red y 3 a menos de 2 kilómetros. Clínica Santa Fe y Clínica San Jorge se encuentran disponibles en la lista."
+        >
+          <div
+            class="benefit-card-content"
+            style="
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              height: 100%;
+            "
+          >
+            <div>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                "
+              >
+                <span
+                  class="design-explain-tag"
+                  style="
+                    background: var(--color-teal-light);
+                    color: var(--color-teal);
+                  "
+                  >Centros Médicos</span
+                >
+                <svg
+                  style="
+                    width: 20px;
+                    height: 20px;
+                    color: var(--color-slate-400);
+                  "
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  ></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  ></path>
+                </svg>
+              </div>
+
+              <div class="clinicas-available-box" style="margin-top: 8px">
+                <span class="clinicas-number-big">+120</span>
+                <span class="clinicas-number-desc" id="clinicasBigDesc"
+                  >Clínicas disponibles en tu red<br /><span
+                    style="font-size: 0.7rem; opacity: 0.85"
+                    >3 clínicas a menos de 2 km</span
+                  ></span
+                >
+              </div>
+
+              <!-- Clinica 1 -->
+              <div class="clinica-row-item">
+                <div class="clinica-info-wrap">
+                  <span class="clinica-title c1-title">Clínica Santa Fe</span>
+                  <span class="clinica-metadata c1-desc"
+                    >1.2 km · Abierto 24 h</span
+                  >
+                </div>
+                <svg
+                  style="
+                    width: 16px;
+                    height: 16px;
+                    color: var(--color-slate-400);
+                  "
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  ></path>
+                </svg>
+              </div>
+
+              <!-- Clinica 2 -->
+              <div class="clinica-row-item">
+                <div class="clinica-info-wrap">
+                  <span class="clinica-title c2-title">Clínica San Jorge</span>
+                  <span class="clinica-metadata c2-desc"
+                    >2.3 km · Abierto 24 h</span
+                  >
+                </div>
+                <svg
+                  style="
+                    width: 16px;
+                    height: 16px;
+                    color: var(--color-slate-400);
+                  "
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+
+            <div style="position: relative; width: 100%; margin-top: 8px">
+              <button
+                class="btn-target-safe btn-ver-clinicas"
+                id="btnVerClinicas"
+                aria-label="Visualizar todas las clínicas y centros médicos de la red"
+              >
+                <svg
+                  style="width: 18px; height: 18px"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h1.5A2.5 2.5 0 0019 9.5V8a2 2 0 00-2-2h-1a2 2 0 01-2-2V3.065M12 2a10 10 0 100 20 10 10 0 000-20z"
+                  ></path>
+                </svg>
+                <span class="btn-clinicas-txt">Ver Todas las Opciones</span>
+              </button>
+              <div class="target-highlight-box">
+                <span class="target-label-spec">Min 48px Táctil</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 4: INTEGRATED FIGMA ACCESSIBILITY CARD (White by default) ================= -->
+        <section
+          class="bento-card integrated-a11y-card"
+          id="accesibilidad"
+          aria-labelledby="intA11yHeading"
+          data-tts="Tarjeta de Ajustes de Accesibilidad. Contiene opciones para activar Alto Contraste, Reducir Animaciones, cambiar Tamaño de Texto, Modo Lectura Fácil, Lector de Pantalla, y Control por Voz."
+        >
+          <h2 id="intA11yHeading">
+            <svg
+              style="width: 28px; height: 28px; color: var(--color-teal)"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+              ></path>
+            </svg>
+            <span class="int-a11y-title">Ajustes de Accesibilidad</span>
+          </h2>
+
+          <div class="integrated-a11y-grid">
+            <!-- Columna Izquierda -->
+            <div class="integrated-a11y-column">
+              <!-- Alto Contraste -->
+              <div class="a11y-integrated-option">
+                <div class="a11y-integrated-info">
+                  <div class="a11y-integrated-title int-title-contrast">
+                    Alto Contraste
+                  </div>
+                  <div class="a11y-integrated-desc int-desc-contrast">
+                    Mejora la visibilidad del texto
+                  </div>
+                </div>
+                <label class="switch-label-int" for="intContrastToggle">
+                  <input
+                    type="checkbox"
+                    id="intContrastToggle"
+                    aria-label="Activar Alto Contraste"
+                  />
+                  <span class="switch-slider-int"></span>
+                </label>
+              </div>
+
+              <!-- Reducir Animaciones -->
+              <div class="a11y-integrated-option">
+                <div class="a11y-integrated-info">
+                  <div class="a11y-integrated-title int-title-reduce">
+                    Reducir Animaciones
+                  </div>
+                  <div class="a11y-integrated-desc int-desc-reduce">
+                    Evita la Sobrecarga Sensorial
+                  </div>
+                </div>
+                <label class="switch-label-int" for="intReduceAnimationsToggle">
+                  <input
+                    type="checkbox"
+                    id="intReduceAnimationsToggle"
+                    aria-label="Activar Reducción de Animaciones"
+                  />
+                  <span class="switch-slider-int"></span>
+                </label>
+              </div>
+
+              <!-- Tamaño de Texto -->
+              <div
+                class="a11y-integrated-option"
+                style="
+                  flex-direction: column;
+                  align-items: stretch;
+                  gap: 4px;
+                  border-bottom: none;
+                "
+              >
+                <div class="a11y-integrated-info" style="padding-right: 0">
+                  <div class="a11y-integrated-title int-title-size">
+                    Tamaño de Texto
+                  </div>
+                </div>
+                <div
+                  class="text-resize-btn-group-int"
+                  role="group"
+                  aria-label="Controles integrados de tamaño de letra"
+                >
+                  <button
+                    class="btn-resize-int"
+                    id="intBtnTextSmall"
+                    data-size="85%"
+                    aria-label="Tamaño de texto pequeño"
+                  >
+                    A-
+                  </button>
+                  <button
+                    class="btn-resize-int active"
+                    id="intBtnTextNormal"
+                    data-size="100%"
+                    aria-label="Tamaño de texto normal"
+                  >
+                    Normal
+                  </button>
+                  <button
+                    class="btn-resize-int"
+                    id="intBtnTextLarge"
+                    data-size="125%"
+                    aria-label="Tamaño de texto grande"
+                  >
+                    A+
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna Derecha -->
+            <div class="integrated-a11y-column">
+              <!-- Modo Lectura Fácil -->
+              <div class="a11y-integrated-option">
+                <div class="a11y-integrated-info">
+                  <div class="a11y-integrated-title int-title-easy">
+                    Modo Lectura Fácil
+                  </div>
+                  <div class="a11y-integrated-desc int-desc-easy">
+                    Simplifica los textos
+                  </div>
+                </div>
+                <label class="switch-label-int" for="intEasyReadToggle">
+                  <input
+                    type="checkbox"
+                    id="intEasyReadToggle"
+                    aria-label="Activar Modo Lectura Fácil"
+                  />
+                  <span class="switch-slider-int"></span>
+                </label>
+              </div>
+
+              <!-- Lector de Pantalla -->
+              <div class="a11y-integrated-option">
+                <div class="a11y-integrated-info">
+                  <div class="a11y-integrated-title int-title-tts">
+                    Lector de Pantalla
+                  </div>
+                  <div class="a11y-integrated-desc int-desc-tts">
+                    Audio Descriptivo
+                  </div>
+                </div>
+                <label class="switch-label-int" for="intTtsToggle">
+                  <input
+                    type="checkbox"
+                    id="intTtsToggle"
+                    aria-label="Activar Lector de Pantalla"
+                  />
+                  <span class="switch-slider-int"></span>
+                </label>
+              </div>
+
+              <!-- Control por Voz -->
+              <div class="a11y-integrated-option">
+                <div class="a11y-integrated-info">
+                  <div class="a11y-integrated-title int-title-voice">
+                    Control por Voz
+                  </div>
+                  <div class="a11y-integrated-desc int-desc-voice">
+                    Navegar con el Micrófono
+                  </div>
+                </div>
+                <label class="switch-label-int" for="intVoiceToggle">
+                  <input
+                    type="checkbox"
+                    id="intVoiceToggle"
+                    aria-label="Activar Control por Voz"
+                  />
+                  <span class="switch-slider-int"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 5: REFLEXION FINAL (THREE SEPARATE BENTO CARDS) ================= -->
+        <!-- Card Conclusión 1: Carga Mental -->
+        <section
+          class="bento-card conclusion-card"
+          style="
+            grid-column: span 4;
+            min-height: 240px;
+            border-left: 5px solid var(--color-teal);
+          "
+          aria-labelledby="concl1Heading"
+          data-tts="Tarjeta Beneficio del Bento: Menor Carga Mental. Al segmentar datos en casilleros separados, el cerebro procesa la información sin fatiga visual ni estrés."
+        >
+          <div class="inspector-overlay">
+            <div
+              class="a11y-node-explainer pos-receta pos-conclusion"
+              style="
+                background: var(--color-teal);
+                border-left-color: var(--color-teal-light);
+              "
+            >
+              <strong>Carga Mental</strong><br />
+              Aislar datos en casilleros separados previene la fatiga visual.
+            </div>
+          </div>
+          <div>
+            <span
+              class="design-explain-tag"
+              style="
+                background: rgba(15, 118, 110, 0.08);
+                color: var(--color-teal);
+              "
+              >Beneficio Cognitivo</span
+            >
+            <h3
+              id="concl1Heading"
+              style="font-size: 1.15rem; margin-top: 8px"
+              class="conclusion1-title"
+            >
+              Carga Mental Mínima
+            </h3>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--color-slate-700);
+                margin-top: 8px;
+                line-height: 1.45;
+              "
+              class="conclusion1-desc"
+            >
+              Al fragmentar y encuadrar las tareas en bloques únicos, el cerebro
+              procesa la información por separado, evitando la parálisis por
+              análisis y el estrés visual.
+            </p>
+          </div>
+        </section>
+
+        <!-- Card Conclusión 2: Predictibilidad -->
+        <section
+          class="bento-card conclusion-card"
+          style="
+            grid-column: span 4;
+            min-height: 240px;
+            border-left: 5px solid var(--color-purple);
+          "
+          aria-labelledby="concl2Heading"
+          data-tts="Tarjeta Beneficio del Bento: Estructura y Predictibilidad. La consistencia visual del Bento ayuda a mentes neurodivergentes a anticipar dónde está la información."
+        >
+          <div class="inspector-overlay">
+            <div
+              class="a11y-node-explainer pos-progress pos-conclusion"
+              style="
+                background: var(--color-purple);
+                border-left-color: var(--color-purple-light);
+              "
+            >
+              <strong>Predictibilidad</strong><br />
+              La consistencia del Bento ayuda a anticipar la ubicación de los
+              datos.
+            </div>
+          </div>
+          <div>
+            <span
+              class="design-explain-tag"
+              style="
+                background: rgba(91, 33, 182, 0.08);
+                color: var(--color-purple);
+              "
+              >Andamiaje Inclusivo</span
+            >
+            <h3
+              id="concl2Heading"
+              style="font-size: 1.15rem; margin-top: 8px"
+              class="conclusion2-title"
+            >
+              Predictibilidad
+            </h3>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--color-slate-700);
+                margin-top: 8px;
+                line-height: 1.45;
+              "
+              class="conclusion2-desc"
+            >
+              La consistencia estructural de la cuadrícula Bento ayuda a mentes
+              diversas a predecir la ubicación del contenido, brindando
+              seguridad en la navegación.
+            </p>
+          </div>
+        </section>
+
+        <!-- Card Conclusión 3: Autonomía -->
+        <section
+          class="bento-card conclusion-card"
+          style="
+            grid-column: span 4;
+            min-height: 240px;
+            border-left: 5px solid var(--color-blue);
+          "
+          aria-labelledby="concl3Heading"
+          data-tts="Tarjeta Beneficio del Bento: Autonomía de Uso. Áreas táctiles de 48 píxeles y síntesis de voz aseguran que personas con baja motricidad u visión reducida operen el sistema."
+        >
+          <div class="inspector-overlay">
+            <div
+              class="a11y-node-explainer pos-telemed pos-conclusion"
+              style="
+                background: var(--color-blue);
+                border-left-color: var(--color-blue-hover);
+              "
+            >
+              <strong>Autonomía</strong><br />
+              Botones de 48px y TTS garantizan acceso a motricidad y visión
+              baja.
+            </div>
+          </div>
+          <div>
+            <span
+              class="design-explain-tag"
+              style="
+                background: rgba(3, 105, 161, 0.08);
+                color: var(--color-blue);
+              "
+              >Acceso Universal</span
+            >
+            <h3
+              id="concl3Heading"
+              style="font-size: 1.15rem; margin-top: 8px"
+              class="conclusion3-title"
+            >
+              Autonomía de Uso
+            </h3>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--color-slate-700);
+                margin-top: 8px;
+                line-height: 1.45;
+              "
+              class="conclusion3-desc"
+            >
+              Botones con áreas táctiles amplias de 48px y síntesis de voz
+              integrada garantizan que personas con baja visión u motricidad
+              operen de forma independiente.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- -------------------------------------------------------------
+       ACCESSIBILITY CENTER TRIGGER BUTTON
+       ------------------------------------------------------------- -->
+    <button
+      class="a11y-floating-trigger"
+      id="openA11yBtn"
+      aria-label="Abrir Panel Desplegable de Ajustes de Accesibilidad"
+      aria-haspopup="dialog"
+    >
+      <svg
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+        ></path>
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        ></path>
+      </svg>
+    </button>
+
+    <!-- Drawer Backdrop -->
+    <div class="sidebar-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
+
+    <!-- -------------------------------------------------------------
+       ACCESSIBILITY DRAWER (SIDEBAR)
+       ------------------------------------------------------------- -->
+    <div
+      class="a11y-drawer"
+      id="a11yDrawer"
+      role="dialog"
+      aria-labelledby="drawerTitle"
+      aria-modal="true"
+    >
+      <div class="drawer-header">
+        <h2 id="drawerTitle">
+          <svg
+            style="width: 28px; height: 28px; color: var(--color-purple)"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+            ></path>
+          </svg>
+          <span>Accesibilidad</span>
+        </h2>
+        <button
+          class="btn-close-drawer"
+          id="closeA11yBtn"
+          aria-label="Cerrar Ajustes de Accesibilidad"
+        >
+          <svg
+            style="width: 20px; height: 20px"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Visual Personalization Section -->
+      <div class="drawer-section">
+        <h3>Visual e Interfaz</h3>
+
+        <!-- Alto Contraste -->
+        <div class="a11y-option-item">
+          <div class="a11y-option-info">
+            <div class="a11y-option-title">Alto Contraste</div>
+            <div class="a11y-option-desc">Máximo contraste oscuro WCAG AAA</div>
+          </div>
+          <label class="switch-label" for="contrastToggle">
+            <input
+              type="checkbox"
+              id="contrastToggle"
+              aria-label="Activar Alto Contraste desde lateral"
+            />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <!-- Reducir Animaciones -->
+        <div class="a11y-option-item">
+          <div class="a11y-option-info">
+            <div class="a11y-option-title">Reducir Animaciones</div>
+            <div class="a11y-option-desc">
+              Detiene movimientos y transiciones
+            </div>
+          </div>
+          <label class="switch-label" for="reduceAnimationsToggle">
+            <input
+              type="checkbox"
+              id="reduceAnimationsToggle"
+              aria-label="Activar Reducción de Animaciones desde lateral"
+            />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <!-- Tamaño de Texto -->
+        <div
+          class="a11y-option-item"
+          style="flex-direction: column; align-items: stretch; gap: 10px"
+        >
+          <div class="a11y-option-info" style="padding-right: 0">
+            <div class="a11y-option-title">Tamaño de Texto</div>
+            <div class="a11y-option-desc">
+              Modifica el tamaño tipográfico elásticamente
+            </div>
+          </div>
+          <div
+            class="text-resize-btn-group"
+            role="group"
+            aria-label="Controles de tamaño de letra desde lateral"
+          >
+            <button
+              class="btn-resize"
+              id="btnTextSmall"
+              data-size="85%"
+              aria-label="Tamaño de texto pequeño"
+            >
+              A-
+            </button>
+            <button
+              class="btn-resize active"
+              id="btnTextNormal"
+              data-size="100%"
+              aria-label="Tamaño de texto normal"
+            >
+              Normal
+            </button>
+            <button
+              class="btn-resize"
+              id="btnTextLarge"
+              data-size="125%"
+              aria-label="Tamaño de texto grande"
+            >
+              A+
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cognitive Assistance Section -->
+      <div class="drawer-section">
+        <h3>Asistencia Cognitiva</h3>
+
+        <!-- Modo Lectura Fácil -->
+        <div class="a11y-option-item">
+          <div class="a11y-option-info">
+            <div class="a11y-option-title">Modo Lectura Fácil</div>
+            <div class="a11y-option-desc">
+              Simplifica tecnicismos a lenguaje directo
+            </div>
+          </div>
+          <label class="switch-label" for="easyReadToggle">
+            <input
+              type="checkbox"
+              id="easyReadToggle"
+              aria-label="Activar Modo Lectura Fácil desde lateral"
+            />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sensory Integration Section -->
+      <div class="drawer-section">
+        <h3>Integración Sensorial</h3>
+
+        <!-- Lector de Pantalla TTS -->
+        <div class="a11y-option-item">
+          <div class="a11y-option-info">
+            <div class="a11y-option-title">Lector de Pantalla (Audio)</div>
+            <div class="a11y-option-desc">
+              Voz al posar cursor o foco sobre elementos
+            </div>
+          </div>
+          <label class="switch-label" for="ttsToggle">
+            <input
+              type="checkbox"
+              id="ttsToggle"
+              aria-label="Activar Lector de Pantalla integrado desde lateral"
+            />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <!-- Control por Voz -->
+        <div
+          class="a11y-option-item"
+          style="flex-direction: column; align-items: stretch; gap: 6px"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <div class="a11y-option-info">
+              <div class="a11y-option-title">Control por Voz</div>
+              <div class="a11y-option-desc">
+                Opera con micrófono mediante comandos
+              </div>
+            </div>
+            <label class="switch-label" for="voiceToggle">
+              <input
+                type="checkbox"
+                id="voiceToggle"
+                aria-label="Activar Control por Voz con comandos desde lateral"
+              />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <!-- Voice micro-console overlay inside drawer -->
+          <div class="voice-console" id="voiceConsole">
+            <div class="voice-console-header">
+              <span>MICRÓFONO VIDA-VOICE</span>
+              <span class="voice-indicator-dot"></span>
+            </div>
+            <div id="voiceLogs">Esperando activación de control por voz...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- -------------------------------------------------------------
+       MOBILE HAMBURGER DRAWER LAYOUT (SLIDES FROM RIGHT)
+       ------------------------------------------------------------- -->
+    <div
+      class="mobile-drawer-backdrop"
+      id="mobileDrawerBackdrop"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="mobile-nav-drawer"
+      id="mobileNavDrawer"
+      role="dialog"
+      aria-labelledby="mobileDrawerTitle"
+      aria-modal="true"
+    >
+      <div class="mobile-drawer-header">
+        <div class="mobile-drawer-header-title" id="mobileDrawerTitle">
+          <svg
+            style="width: 24px; height: 24px; color: #ffffff"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+            ></path>
+          </svg>
+          <span>VidaSalud</span>
+        </div>
+        <button
+          class="mobile-drawer-close-btn"
+          id="mobileDrawerCloseBtn"
+          aria-label="Cerrar menú de navegación móvil"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Profile card -->
+      <div class="mobile-drawer-profile">
+        <div class="mobile-profile-avatar">VT</div>
+        <div class="mobile-profile-info">
+          <h4 id="mobProfileGreeting">Hola, Celeste 👋</h4>
+          <p>Mi Cuenta</p>
+        </div>
+      </div>
+
+      <!-- Nav List with Icons -->
+      <div class="mobile-drawer-menu-list">
+        <a href="#inicio" class="mobile-menu-item active" id="mobLinkInicio">
+          <svg
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            ></path>
+          </svg>
+          <span>Inicio</span>
+        </a>
+        <a href="#cobertura" class="mobile-menu-item" id="mobLinkCobertura">
+          <svg
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            ></path>
+          </svg>
+          <span>Cobertura</span>
+        </a>
+        <a href="#pagos" class="mobile-menu-item" id="mobLinkPagos">
+          <svg
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+            ></path>
+          </svg>
+          <span>Pagos</span>
+        </a>
+        <a href="#historial" class="mobile-menu-item" id="mobLinkHistorial">
+          <svg
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          <span>Historial</span>
+        </a>
+
+        <div class="mobile-drawer-divider"></div>
+
+        <!-- Special drawer actions (Accessibility & Support) -->
+        <div class="mobile-menu-subitem" id="mobLinkA11y">
+          <div class="mobile-subitem-title-row">
+            <svg
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+              ></path>
+            </svg>
+            <span class="lblMobA11yTitle">Accesibilidad</span>
+          </div>
+          <span class="mobile-subitem-desc" id="lblMobA11yDesc"
+            >Ajustes de interfaz</span
+          >
+        </div>
+
+        <div class="mobile-menu-subitem" id="mobLinkSoporte">
+          <div class="mobile-subitem-title-row">
+            <svg
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              ></path>
+            </svg>
+            <span class="lblMobSoporteTitle">Soporte</span>
+          </div>
+          <span class="mobile-subitem-desc" id="lblMobSoporteDesc"
+            >Ayuda y preguntas</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- -------------------------------------------------------------
+       GRACIAS BETO MEME FULLSCREEN OVERLAY
+       ------------------------------------------------------------- -->
+    <div
+      id="betoOverlay"
+      aria-label="hombre mayor llamado beto levantando el pulgar"
+      role="img"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.92);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+      "
+    >
+      <div
+        style="
+          text-align: center;
+          transform: scale(0.85);
+          transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        "
+        id="betoContainer"
+      >
+        <img
+          src="assets/beto.jpg"
+          alt="hombre mayor llamado beto levantando el pulgar"
+          style="
+            max-width: 85vw;
+            max-height: 75vh;
+            border-radius: 24px;
+            border: 4px solid #ffffff;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            object-fit: contain;
+          "
+        />
+        <h2
+          style="
+            color: #ffffff;
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            margin-top: 20px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+          "
+        >
+          ¡De nada, Celeste! 👍
+        </h2>
+      </div>
+    </div>
+
+    <!-- -------------------------------------------------------------
+       JAVASCRIPT DYNAMIC MOTOR
+       ------------------------------------------------------------- -->
+    <script>
+      // ---------- Date stamp calculation ----------
+      const setDynamicDate = () => {
+        const options = {
+          weekday: "short",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        };
+        const today = new Date();
+        let dateString = today.toLocaleDateString("es-ES", options);
+        dateString = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+        const cleanString = dateString
+          .replace(" de ", " de ")
+          .replace(" miércoles,", "Mié.,")
+          .replace(" Wednesday,", "Mié.,");
+        document.getElementById("heroDateStamp").innerText = cleanString;
+      };
+      setDynamicDate();
+
+      // ---------- DOM References ----------
+      const bodyEl = document.body;
+      const openA11yBtn = document.getElementById("openA11yBtn");
+      const closeA11yBtn = document.getElementById("closeA11yBtn");
+      const a11yDrawer = document.getElementById("a11yDrawer");
+      const drawerBackdrop = document.getElementById("drawerBackdrop");
+      const inspectorToggleBtn = document.getElementById("inspectorToggleBtn");
+
+      // Mobile Hamburger Menu Elements
+      const hamburgerBtn = document.getElementById("hamburgerBtn");
+      const mobileNavDrawer = document.getElementById("mobileNavDrawer");
+      const mobileDrawerBackdrop = document.getElementById(
+        "mobileDrawerBackdrop",
+      );
+      const mobileDrawerCloseBtn = document.getElementById(
+        "mobileDrawerCloseBtn",
+      );
+      const mobLinkA11y = document.getElementById("mobLinkA11y");
+
+      // Toggles for drawers
+      const toggleA11yDrawer = (isOpen) => {
+        a11yDrawer.classList.toggle("open", isOpen);
+        drawerBackdrop.classList.toggle("active", isOpen);
+        openA11yBtn.setAttribute("aria-expanded", isOpen.toString());
+        if (isOpen) {
+          closeA11yBtn.focus();
+        } else {
+          openA11yBtn.focus();
+        }
+      };
+
+      const toggleMobileDrawer = (isOpen) => {
+        mobileNavDrawer.classList.toggle("open", isOpen);
+        mobileDrawerBackdrop.classList.toggle("active", isOpen);
+        hamburgerBtn.setAttribute("aria-expanded", isOpen.toString());
+        if (isOpen) {
+          mobileDrawerCloseBtn.focus();
+        } else {
+          hamburgerBtn.focus();
+        }
+      };
+
+      openA11yBtn.addEventListener("click", () => toggleA11yDrawer(true));
+      closeA11yBtn.addEventListener("click", () => toggleA11yDrawer(false));
+      drawerBackdrop.addEventListener("click", () => toggleA11yDrawer(false));
+
+      hamburgerBtn.addEventListener("click", () => toggleMobileDrawer(true));
+      mobileDrawerCloseBtn.addEventListener("click", () =>
+        toggleMobileDrawer(false),
+      );
+      mobileDrawerBackdrop.addEventListener("click", () =>
+        toggleMobileDrawer(false),
+      );
+
+      // Mobile drawer accessibility action trigger
+      mobLinkA11y.addEventListener("click", () => {
+        toggleMobileDrawer(false);
+        setTimeout(() => {
+          toggleA11yDrawer(true);
+        }, 300);
+      });
+
+      // Close drawers on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (a11yDrawer.classList.contains("open")) toggleA11yDrawer(false);
+          if (mobileNavDrawer.classList.contains("open"))
+            toggleMobileDrawer(false);
+        }
+      });
+
+      // -------------------------------------------------------------
+      // ACCESSIBILITY CONTROL BINDINGS & SYNCHRONIZATION
+      // -------------------------------------------------------------
+      const sidebarContrast = document.getElementById("contrastToggle");
+      const integratedContrast = document.getElementById("intContrastToggle");
+
+      const sidebarReduce = document.getElementById("reduceAnimationsToggle");
+      const integratedReduce = document.getElementById(
+        "intReduceAnimationsToggle",
+      );
+
+      const sidebarEasy = document.getElementById("easyReadToggle");
+      const integratedEasy = document.getElementById("intEasyReadToggle");
+
+      const sidebarTts = document.getElementById("ttsToggle");
+      const integratedTts = document.getElementById("intTtsToggle");
+
+      const sidebarVoice = document.getElementById("voiceToggle");
+      const integratedVoice = document.getElementById("intVoiceToggle");
+
+      // 1. Alto Contraste (High Contrast)
+      const applyContrast = (isActive) => {
+        bodyEl.classList.toggle("high-contrast", isActive);
+        sidebarContrast.checked = isActive;
+        integratedContrast.checked = isActive;
+        speakText(isActive ? "Contraste activo" : "Contraste inactivo");
+      };
+      sidebarContrast.addEventListener("change", (e) =>
+        applyContrast(e.target.checked),
+      );
+      integratedContrast.addEventListener("change", (e) =>
+        applyContrast(e.target.checked),
+      );
+
+      // 2. Reducir Animaciones (Reduce Motion)
+      const applyReduceAnimations = (isActive) => {
+        bodyEl.classList.toggle("reduce-animations", isActive);
+        sidebarReduce.checked = isActive;
+        integratedReduce.checked = isActive;
+        speakText(isActive ? "Animaciones reducidas" : "Animaciones activas");
+      };
+      sidebarReduce.addEventListener("change", (e) =>
+        applyReduceAnimations(e.target.checked),
+      );
+      integratedReduce.addEventListener("change", (e) =>
+        applyReduceAnimations(e.target.checked),
+      );
+
+      // 3. Tamaño de Texto (Elástico)
+      const textResizeBtnsSidebar = document.querySelectorAll(".btn-resize");
+      const textResizeBtnsInt = document.querySelectorAll(".btn-resize-int");
+
+      const applyTextScale = (sizeValue) => {
+        document.documentElement.style.setProperty(
+          "--base-font-size",
+          sizeValue,
+        );
+
+        // Update sidebar buttons visual active states
+        textResizeBtnsSidebar.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.size === sizeValue);
+        });
+        // Update integrated card buttons active states
+        textResizeBtnsInt.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.size === sizeValue);
+        });
+
+        if (sizeValue === "125%") speakText("Letra grande");
+        else if (sizeValue === "85%") speakText("Letra chica");
+        else speakText("Letra normal");
+      };
+
+      textResizeBtnsSidebar.forEach((btn) => {
+        btn.addEventListener("click", (e) =>
+          applyTextScale(e.currentTarget.dataset.size),
+        );
+      });
+      textResizeBtnsInt.forEach((btn) => {
+        btn.addEventListener("click", (e) =>
+          applyTextScale(e.currentTarget.dataset.size),
+        );
+      });
+
+      // 4. Modo Lectura Fácil (Plain Spanish Language Engine - COGNITIVELY OPTIMIZED & ULTRA-CONCISE)
+      const easyReadMap = [
+        {
+          selector: "#greetingHeading",
+          original: "Hola, Celeste 👋",
+          simple: "¡Hola Celeste! 😊",
+        },
+        {
+          selector: "#mobProfileGreeting",
+          original: "Hola, Celeste 👋",
+          simple: "¡Hola Celeste! 😊",
+        },
+        {
+          selector: ".plan-text",
+          original: "Plan Familiar Plus — Activo",
+          simple: "Seguro médico activo.",
+        },
+        {
+          selector: "#heroSubtitle",
+          original: "Tu salud es nuestra prioridad. Todo está al día.",
+          simple: "Tu salud está al día.",
+        },
+        { selector: ".metric-coverage", original: "98%", simple: "98%" },
+        {
+          selector: "#lblCoverage",
+          original: "Cobertura activa",
+          simple: "Cubre casi todo (98%).",
+        },
+        { selector: ".metric-members", original: "4", simple: "4" },
+        {
+          selector: "#lblMembers",
+          original: "Miembros cubiertos",
+          simple: "4 personas cubiertas.",
+        },
+        {
+          selector: ".metric-validity",
+          original: "Dic. 2026",
+          simple: "Dic. 2026",
+        },
+        {
+          selector: "#lblValidity",
+          original: "Vigencia del plan",
+          simple: "Vence: Dic. 2026.",
+        },
+        {
+          selector: ".btn-dig-txt",
+          original: "Tarjeta Digital de Cobertura",
+          simple: "Ver credencial en pantalla",
+        },
+        {
+          selector: ".emergency-btn-text",
+          original: "Asistencia de Emergencia 24/7",
+          simple: "Llamar Ambulancia (Gratis)",
+        },
+        {
+          selector: ".telemed-desc",
+          original: "Telemedicina 24/7 disponible",
+          simple: "Médico por video ya",
+        },
+        {
+          selector: "#telemedHeading",
+          original: "&lt; 3 min",
+          simple: "Espera: menos de 3 min",
+        },
+        {
+          selector: "#telemedWaitDesc",
+          original: "Tiempo promedio de espera actual",
+          simple: "Un médico te atiende ya por video.",
+        },
+        {
+          selector: ".doc-name",
+          original: "Dra. Ana Morales",
+          simple: "Médica: Dra. Ana Morales",
+        },
+        {
+          selector: ".doc-specialty",
+          original: "Medicina General",
+          simple: "Medicina General",
+        },
+        {
+          selector: ".btn-tel-txt",
+          original: "Iniciar video consulta ahora",
+          simple: "Hablar con médica por video ya",
+        },
+        {
+          selector: "#mentalHeading",
+          original: "Salud Mental",
+          simple: "Psicólogo: 3 de 8 citas usadas.",
+        },
+        {
+          selector: ".mental-health-progress",
+          original: "3 de 8 sesiones",
+          simple: "3 citas usadas.",
+        },
+        {
+          selector: "#mentalDesc",
+          original: "5 sesiones restantes este mes",
+          simple: "Te quedan 5 citas este mes.",
+        },
+        {
+          selector: "#preventivaHeading",
+          original: "Atención Preventiva",
+          simple: "Chequeo Anual",
+        },
+        {
+          selector: ".tblPreventiveState",
+          original: "Disponible",
+          simple: "Gratis",
+        },
+        {
+          selector: "#preventivaDesc",
+          original: "Chequeo anual — Programe hoy",
+          simple: "Tu control anual es gratis.",
+        },
+        {
+          selector: "#dentalHeading",
+          original: "Dental y Visión",
+          simple: "Dentista y Oculista",
+        },
+        {
+          selector: ".dental-health-progress",
+          original: "5 / 5 visitas",
+          simple: "5 visitas gratis.",
+        },
+        {
+          selector: "#dentalDesc",
+          original: "Se renueva en junio 2026",
+          simple: "Se recarga en junio 2026.",
+        },
+        {
+          selector: ".rec1-title",
+          original: "Receta #482109",
+          simple: "Remedio Amoxicilina (Infección)",
+        },
+        {
+          selector: ".rec1-badge",
+          original: "En camino",
+          simple: "En camino a tu casa",
+        },
+        {
+          selector: ".rec1-desc",
+          original: "Antibiótico — Amoxicilina 500mg",
+          simple: "Fórmula médica aprobada.",
+        },
+        {
+          selector: "#rec1Footer",
+          original:
+            '<svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Envío gratis — Entrega hoy',
+          simple: "Llega hoy gratis a tu casa.",
+        },
+        {
+          selector: ".rec2-title",
+          original: "Receta #481890",
+          simple: "Remedio Omeprazol (Estómago)",
+        },
+        {
+          selector: ".rec2-badge",
+          original: "Surtida",
+          simple: "Ya entregado",
+        },
+        {
+          selector: ".rec2-desc",
+          original: "Omeprazol 20mg — Recurrente",
+          simple: "Fórmula médica entregada.",
+        },
+        {
+          selector: "#rec2Footer",
+          original:
+            '<span class="status-dot-green"></span> Surtida — 25 abr. 2026',
+          simple: "Lo retiraste el 25 de abril.",
+        },
+        {
+          selector: "#recetasFooterLink span",
+          original: "Ver todas las recetas",
+          simple: "Ver mis remedios",
+        },
+        {
+          selector: "#clinicasHeading",
+          original: "Centros Médicos",
+          simple: "Sanatorios Cerca",
+        },
+        {
+          selector: "#clinicasBigDesc",
+          original:
+            'Clínicas disponibles en tu red<br><span style="font-size:0.7rem; opacity:0.85;">3 clínicas a menos de 2 km</span>',
+          simple: "Más de 120 clínicas. Hay 3 muy cerca.",
+        },
+        {
+          selector: ".c1-title",
+          original: "Clínica Santa Fe",
+          simple: "Clínica Santa Fe",
+        },
+        {
+          selector: ".c1-desc",
+          original: "1.2 km · Abierto 24 h",
+          simple: "A 12 cuadras. Abierta siempre.",
+        },
+        {
+          selector: ".c2-title",
+          original: "Clínica San Jorge",
+          simple: "Clínica San Jorge",
+        },
+        {
+          selector: ".c2-desc",
+          original: "2.3 km · Abierto 24 h",
+          simple: "A 23 cuadras. Abierta siempre.",
+        },
+        {
+          selector: ".btn-clinicas-txt",
+          original: "Ver Todas las Opciones",
+          simple: "Ver mapa de clínicas",
+        },
+        {
+          selector: "#logo-sub-badge",
+          original: "Bento &amp; Neuro-Inclusión",
+          simple: "Diseño Simple",
+        },
+        {
+          selector: ".conclusion1-title",
+          original: "Carga Mental Mínima",
+          simple: "Menos esfuerzo mental",
+        },
+        {
+          selector: ".conclusion1-desc",
+          original:
+            "Al fragmentar y encuadrar las tareas en bloques únicos, el cerebro procesa la información por separado, evitando la parálisis por análisis y el estrés visual.",
+          simple:
+            "Cada tema tiene su propio casillero para que tu mente descanse y no se abrume.",
+        },
+        {
+          selector: ".conclusion2-title",
+          original: "Predictibilidad",
+          simple: "Todo en su lugar",
+        },
+        {
+          selector: ".conclusion2-desc",
+          original:
+            "La consistencia estructural de la cuadrícula Bento ayuda a mentes diversas a predecir la ubicación del contenido, brindando seguridad en la navegación.",
+          simple:
+            "La grilla Bento es fija y ordenada, así siempre sabes dónde está cada botón sin perderte.",
+        },
+        {
+          selector: ".conclusion3-title",
+          original: "Autonomía de Uso",
+          simple: "Fácil para todos",
+        },
+        {
+          selector: ".conclusion3-desc",
+          original:
+            "Botones con áreas táctiles amplias de 48px y síntesis de voz integrada garantizan que personas con baja visión u motricidad operen de forma independiente.",
+          simple:
+            "Botones grandes fáciles de tocar y lector de voz para personas con problemas de vista u motricidad.",
+        },
+      ];
+
+      const applyEasyRead = (isActive) => {
+        sidebarEasy.checked = isActive;
+        integratedEasy.checked = isActive;
+
+        easyReadMap.forEach((item) => {
+          const el = document.querySelector(item.selector);
+          if (el) {
+            if (isActive) {
+              el.innerHTML = item.simple;
+            } else {
+              el.innerHTML = item.original;
+            }
+          }
+        });
+
+        speakText(isActive ? "Modo fácil" : "Modo normal");
+      };
+      sidebarEasy.addEventListener("change", (e) =>
+        applyEasyRead(e.target.checked),
+      );
+      integratedEasy.addEventListener("change", (e) =>
+        applyEasyRead(e.target.checked),
+      );
+
+      // 5. Lector de Pantalla de Audio (TTS Synthesis es-AR)
+      const applyTts = (isActive) => {
+        sidebarTts.checked = isActive;
+        integratedTts.checked = isActive;
+        if (isActive) {
+          speakText("Lector activo");
+        }
+      };
+      sidebarTts.addEventListener("change", (e) => applyTts(e.target.checked));
+      integratedTts.addEventListener("change", (e) =>
+        applyTts(e.target.checked),
+      );
+
+      const speakText = (text) => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "es-AR";
+        utterance.rate = 1.1;
+        window.speechSynthesis.speak(utterance);
+      };
+
+      const handleSpeechInteraction = (e) => {
+        const isTTSActive = sidebarTts.checked || integratedTts.checked;
+        if (!isTTSActive) return;
+        const target = e.currentTarget;
+
+        let announcementText = target.getAttribute("data-tts");
+        if (!announcementText) {
+          announcementText =
+            target.getAttribute("aria-label") ||
+            target.innerText ||
+            target.textContent;
+        }
+
+        if (announcementText) {
+          speakText(announcementText.trim());
+        }
+      };
+
+      const attachTTSListeners = () => {
+        const a11yElements = document.querySelectorAll(
+          ".bento-card, button, a, .a11y-integrated-option, .a11y-option-item, .mobile-menu-item, .mobile-menu-subitem",
+        );
+        a11yElements.forEach((el) => {
+          el.addEventListener("mouseenter", handleSpeechInteraction);
+          el.addEventListener("focus", handleSpeechInteraction);
+        });
+      };
+      attachTTSListeners();
+
+      // 6. Control por Voz Integrado (Annyang.js + Interactive Mic Permission Prompt)
+      const voiceConsole = document.getElementById("voiceConsole");
+      const voiceLogs = document.getElementById("voiceLogs");
+
+      const updateVoiceLog = (message) => {
+        voiceLogs.innerHTML = `<div>🎙️ ${message}</div>`;
+        voiceLogs.scrollTop = voiceLogs.scrollHeight;
+      };
+
+      // Trigger phone calling simulation
+      const triggerEmergencyCall = () => {
+        updateVoiceLog("Comando: 'Llamar emergencias' capturado.");
+        speakText("Llamando emergencias");
+        setTimeout(() => {
+          document.getElementById("emergencyBtn").click();
+        }, 1200);
+      };
+
+      // Toggle Inspector spec
+      const toggleInspectorState = () => {
+        const isCurrentlyActive = bodyEl.classList.contains("inspector-active");
+        toggleDesignInspector(!isCurrentlyActive);
+      };
+
+      // Meme feature "Gracias Beto" overlay trigger
+      const triggerBetoMeme = () => {
+        updateVoiceLog("Comando: 'Gracias Beto' capturado. Mostrando imagen.");
+        const overlay = document.getElementById("betoOverlay");
+        const container = document.getElementById("betoContainer");
+
+        overlay.style.display = "flex";
+        speakText("hombre mayor llamado beto levantando el pulgar");
+
+        setTimeout(() => {
+          overlay.style.opacity = "1";
+          container.style.transform = "scale(1)";
+        }, 50);
+
+        // Hide after 5 seconds
+        setTimeout(() => {
+          overlay.style.opacity = "0";
+          container.style.transform = "scale(0.85)";
+          setTimeout(() => {
+            overlay.style.display = "none";
+          }, 400);
+        }, 5000);
+      };
+
+      const initVoiceCommands = () => {
+        if (!window.annyang) {
+          updateVoiceLog(
+            "Error: El navegador no es compatible con reconocimiento de voz.",
+          );
+          return;
+        }
+
+        annyang.setLanguage("es-ES");
+
+        // Define accessibility voice command vocabulary with multiple synonyms / natural variants
+        const commands = {
+          // High Contrast Toggles
+          "activar (alto) contraste": () => applyContrast(true),
+          "alto contraste": () => applyContrast(true),
+          "prender contraste": () => applyContrast(true),
+          "activar contraste": () => applyContrast(true),
+          "desactivar (alto) contraste": () => applyContrast(false),
+          "quitar contraste": () => applyContrast(false),
+          "desactivar contraste": () => applyContrast(false),
+          "apagar contraste": () => applyContrast(false),
+
+          // Easy Read Toggles
+          "activar (modo) (lectura) fácil": () => applyEasyRead(true),
+          "modo fácil": () => applyEasyRead(true),
+          "lectura fácil": () => applyEasyRead(true),
+          "activar fácil": () => applyEasyRead(true),
+          "desactivar (modo) (lectura) fácil": () => applyEasyRead(false),
+          "quitar modo fácil": () => applyEasyRead(false),
+          "quitar lectura fácil": () => applyEasyRead(false),
+          "desactivar fácil": () => applyEasyRead(false),
+
+          // Text Sizing Controls
+          "aumentar texto": () => applyTextScale("125%"),
+          "agrandar texto": () => applyTextScale("125%"),
+          "texto grande": () => applyTextScale("125%"),
+          "aumentar letra": () => applyTextScale("125%"),
+          "letra grande": () => applyTextScale("125%"),
+          "disminuir texto": () => applyTextScale("85%"),
+          "achicar texto": () => applyTextScale("85%"),
+          "texto chico": () => applyTextScale("85%"),
+          "disminuir letra": () => applyTextScale("85%"),
+          "letra chica": () => applyTextScale("85%"),
+          "texto normal": () => applyTextScale("100%"),
+          "letra normal": () => applyTextScale("100%"),
+          "restablecer texto": () => applyTextScale("100%"),
+          "restablecer letra": () => applyTextScale("100%"),
+
+          // Lector / TTS Controls
+          "activar lector (de pantalla)": () => applyTts(true),
+          "activar audio": () => applyTts(true),
+          "audio descriptivo": () => applyTts(true),
+          "prender lector": () => applyTts(true),
+          lector: () => applyTts(true),
+          "desactivar lector (de pantalla)": () => applyTts(false),
+          "desactivar audio": () => applyTts(false),
+          "apagar lector": () => applyTts(false),
+          "quitar lector": () => applyTts(false),
+
+          // Emergency triggers
+          "llamar emergencias": triggerEmergencyCall,
+          "llamar ambulancia": triggerEmergencyCall,
+          emergencia: triggerEmergencyCall,
+          ambulancia: triggerEmergencyCall,
+          "pedir ayuda": triggerEmergencyCall,
+
+          // Design spec inspector controls
+          "activar inspector": () => toggleDesignInspector(true),
+          "desactivar inspector": () => toggleDesignInspector(false),
+          "modo inspector": () => toggleInspectorState(),
+          "quitar inspector": () => toggleDesignInspector(false),
+          "ver inspector": () => toggleDesignInspector(true),
+
+          // "Gracias beto" meme overlay command
+          "gracias beto": triggerBetoMeme,
+          gracias: triggerBetoMeme,
+        };
+
+        annyang.addCommands(commands);
+
+        annyang.addCallback("soundstart", () => {
+          updateVoiceLog("Escuchando voz activa...");
+        });
+
+        annyang.addCallback("resultNoMatch", (phrases) => {
+          updateVoiceLog(
+            `No reconocido: "${phrases[0]}". Prueba con: 'alto contraste' o 'Gracias beto'.`,
+          );
+        });
+      };
+
+      const toggleVoiceIntegration = async (isActive) => {
+        sidebarVoice.checked = isActive;
+        integratedVoice.checked = isActive;
+
+        if (!window.annyang) {
+          updateVoiceLog("Error: El sistema de voz no está disponible.");
+          return;
+        }
+
+        if (isActive) {
+          try {
+            updateVoiceLog("Solicitando permisos de micrófono...");
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: true,
+            });
+            stream.getTracks().forEach((track) => track.stop());
+
+            annyang.start({ autoRestart: true, continuous: false });
+            voiceConsole.classList.add("active");
+            updateVoiceLog("Control por voz activo. Habla ahora...");
+            speakText("Voz activa");
+          } catch (err) {
+            console.error("Microphone access denied:", err);
+            updateVoiceLog("Error: Acceso al micrófono denegado.");
+            sidebarVoice.checked = false;
+            integratedVoice.checked = false;
+            speakText("Micrófono denegado");
+          }
+        } else {
+          annyang.abort();
+          voiceConsole.classList.remove("active");
+          updateVoiceLog("Micrófono desactivado.");
+        }
+      };
+
+      sidebarVoice.addEventListener("change", (e) =>
+        toggleVoiceIntegration(e.target.checked),
+      );
+      integratedVoice.addEventListener("change", (e) =>
+        toggleVoiceIntegration(e.target.checked),
+      );
+
+      // Initialize Annyang voice configuration
+      initVoiceCommands();
+
+      // -------------------------------------------------------------
+      // VISUAL SPECIFICATION INSPECTOR (MODO DISEÑADOR - NO CURVES/GAPS)
+      // -------------------------------------------------------------
+      const toggleDesignInspector = (isActive) => {
+        bodyEl.classList.toggle("inspector-active", isActive);
+        inspectorToggleBtn.classList.toggle("active", isActive);
+        inspectorToggleBtn.setAttribute("aria-pressed", isActive.toString());
+
+        speakText(isActive ? "Inspector activo" : "Inspector inactivo");
+      };
+
+      inspectorToggleBtn.addEventListener("click", () => {
+        const isCurrentlyActive = bodyEl.classList.contains("inspector-active");
+        toggleDesignInspector(!isCurrentlyActive);
+      });
+    </script>
+  </body>
+</html>
