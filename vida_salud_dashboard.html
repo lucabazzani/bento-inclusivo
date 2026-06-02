@@ -48,7 +48,8 @@
         /* High Contrast (Normal state vars that will override) */
         --color-hc-bg: #000000;
         --color-hc-fg: #ffffff;
-        --color-hc-yellow: #ffff00;
+        --color-hc-yellow: #00eeff;
+        --color-hc-hover: #006d75;
         --color-hc-neon: #39ff14; /* Neon Accent */
 
         /* Typography */
@@ -136,6 +137,7 @@
         border: none;
         cursor: pointer;
         gap: 8px;
+        font-size: 1rem;
       }
 
       /* -------------------------------------------------------------
@@ -820,6 +822,10 @@
         border-radius: 6px;
         border: 1px solid transparent;
         transition: all 0.3s ease;
+      }
+
+       body.high-contrast .receta-status-pill {
+        color: var(--color-hc-yellow);
       }
 
       .receta-status-pill.teal-pill {
@@ -1704,14 +1710,19 @@
       }
 
       body.high-contrast .btn-target-safe:hover {
-        background-color: var(--color-hc-yellow) !important;
+        background-color: var(--color-hc-hover) !important;
         color: #000 !important;
       }
 
       body.high-contrast .btn-emergency {
-        background-color: #ff0000 !important;
+        background-color: #a91f1f !important;
         color: #ffffff !important;
         border: 2px solid #ffffff !important;
+      }
+
+      body.high-contrast .btn-emergency:hover {
+        background-color: #ff0000 !important;
+        border-color: #ffffff !important;
       }
 
       body.high-contrast .btn-digital-card,
@@ -1759,17 +1770,19 @@
 
       body.high-contrast .benefit-state-badge {
         background: #222 !important;
+        color: var(--color-hc-yellow) !important;
         border: 1px solid var(--color-hc-fg) !important;
       }
 
       body.high-contrast .btn-resize-int {
         background: #111 !important;
+        color: #ffffff !important;
         border: 1px solid var(--color-hc-fg) !important;
       }
 
       body.high-contrast .btn-resize-int.active {
-        background: var(--color-hc-yellow) !important;
-        color: #000 !important;
+        background: var(--color-hc-hover) !important;
+        color: #ffffff !important;
       }
 
       /* Override dynamic text resizing card styles for HC */
@@ -1944,9 +1957,125 @@
         bottom: auto !important;
         height: auto !important;
       }
+
+        
+        /* =======================================================
+          ESTILOS PARA EL MODAL DE BIENVENIDA
+          ======================================================= */
+        .welcome-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(15, 23, 42, 0.6); /* Fondo semi-transparente */
+          backdrop-filter: blur(8px); /* Efecto esmerilado moderno */
+          z-index: 2000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.3s ease;
+        }
+
+        /* Cuando el modal está activo */
+        .welcome-overlay.active {
+          opacity: 1;
+          pointer-events: all;
+        }
+
+        .welcome-modal-card {
+          background: var(--color-card-bg);
+          padding: 32px;
+          border-radius: var(--card-radius);
+          max-width: 450px;
+          width: 90%;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .welcome-modal-card h2 {
+          font-size: 1.5rem;
+          color: var(--color-slate-900);
+        }
+
+        .welcome-modal-card p {
+          font-size: 0.95rem;
+          color: var(--color-slate-700);
+        }
+
+        .input-group {
+          margin: 8px 0;
+        }
+
+        /* Input accesible y alineado a tu sistema */
+        #user-name-input {
+          width: 100%;
+          min-height: 48px;
+          padding: 12px 16px;
+          border-radius: 12px;
+          border: 2px solid var(--color-slate-400);
+          background: var(--color-card-bg);
+          color: var(--color-slate-900);
+          font-family: var(--font-body);
+          font-size: 1rem;
+          font-weight: 500;
+          outline: none;
+          transition: border-color 0.2s ease;
+        }
+
+        #user-name-input:focus {
+          border-color: var(--color-teal);
+        }
+
+        /* Ocultar label visualmente manteniendo accesibilidad para lectores de pantalla */
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          border: 0;
+        }
+      
+
     </style>
   </head>
   <body>
+
+    <!-- -------------------------------------------------------------
+       MODAL BIENVENIDA
+       ------------------------------------------------------------- -->
+
+        <div id="welcome-modal" class="welcome-overlay" aria-hidden="true" role="dialog" aria-labelledby="modal-title">
+          <div class="welcome-modal-card">
+            <h2 id="modal-title">¡Te damos la bienvenida a VidaSalud!</h2>
+            <p>Para ofrecerte una experiencia más cercana, ¿cómo te gustaría que te llamemos?</p>
+            
+            <div class="input-group">
+              <label for="user-name-input" class="sr-only">Tu nombre o apodo</label>
+              <input 
+                type="text" 
+                id="user-name-input" 
+                placeholder="Ej. Celeste, Martín, Cris..." 
+                autocomplete="given-name"
+                maxlength="20"
+              />
+            </div>
+            
+            <button id="save-name-btn" class="btn-target-safe btn-digital-card">
+              Comenzar exploración
+            </button>
+          </div>
+        </div>
+
     <!-- -------------------------------------------------------------
        NAVBAR / TOP HEADER
        ------------------------------------------------------------- -->
@@ -2521,7 +2650,7 @@
               <div class="progress-outer-bar" aria-label="100% disponible">
                 <div
                   class="progress-fill-bar"
-                  style="width: 100%; background: var(--color-green-success)"
+                  style="width: 0%; background: var(--color-green-success)"
                 ></div>
               </div>
               <span class="benefit-desc-label" id="preventivaDesc"
@@ -3642,7 +3771,7 @@
             object-fit: contain;
           "
         />
-        <h2
+        <h2 data-personalize="true"
           style="
             color: #ffffff;
             font-family: var(--font-display);
@@ -3837,13 +3966,25 @@
       const easyReadMap = [
         {
           selector: "#greetingHeading",
-          original: "Hola, Celeste 👋",
-          simple: "¡Hola Celeste! 😊",
+          get original() {
+            const name = localStorage.getItem("vidaSalud_userName") || "Celeste";
+            return `Hola, ${name} 👋`;
+          },
+          get simple() {
+            const name = localStorage.getItem("vidaSalud_userName") || "Celeste";
+            return `¡Hola ${name}! 😊`;
+          },
         },
         {
           selector: "#mobProfileGreeting",
-          original: "Hola, Celeste 👋",
-          simple: "¡Hola Celeste! 😊",
+          get original() {
+            const name = localStorage.getItem("vidaSalud_userName") || "Celeste";
+            return `Hola, ${name} 👋`;
+          },
+          get simple() {
+            const name = localStorage.getItem("vidaSalud_userName") || "Celeste";
+            return `¡Hola ${name}! 😊`;
+          },
         },
         {
           selector: ".plan-text",
@@ -3855,13 +3996,13 @@
           original: "Tu salud es nuestra prioridad. Todo está al día.",
           simple: "Tu salud está al día.",
         },
-        { selector: ".metric-coverage", original: "98%", simple: "98%" },
+        { selector: ".metric-coverage", original: "98%", simple: "Cubre casi todo (98%)." },
         {
           selector: "#lblCoverage",
           original: "Cobertura activa",
-          simple: "Cubre casi todo (98%).",
+          simple: "Tu plan está activo y funciona bien.",
         },
-        { selector: ".metric-members", original: "4", simple: "4" },
+        { selector: ".metric-members", original: "4", simple: "4 (cuatro)" },
         {
           selector: "#lblMembers",
           original: "Miembros cubiertos",
@@ -3875,7 +4016,7 @@
         {
           selector: "#lblValidity",
           original: "Vigencia del plan",
-          simple: "Vence: Dic. 2026.",
+          simple: "Tu plan es válido hasta diciembre de 2026.",
         },
         {
           selector: ".btn-dig-txt",
@@ -4362,6 +4503,79 @@
         const isCurrentlyActive = bodyEl.classList.contains("inspector-active");
         toggleDesignInspector(!isCurrentlyActive);
       });
+
+
+        // -------------------------------------------------------------
+        // SISTEMA DE PERSONALIZACIÓN DINÁMICA DE NOMBRE
+        // -------------------------------------------------------------
+        document.addEventListener("DOMContentLoaded", () => {
+          const modal = document.getElementById("welcome-modal");
+          const nameInput = document.getElementById("user-name-input");
+          const saveBtn = document.getElementById("save-name-btn");
+          const greetingHeading = document.getElementById("greetingHeading");
+
+          // Función central para actualizar los textos genéricos
+          const updateGreetingNames = (newName) => {
+            if (!newName) return;
+
+            // 1. Reemplaza el título principal (Hola, Celeste 👋)
+            if (greetingHeading) {
+              greetingHeading.innerHTML = `Hola, ${newName} 👋`;
+            }
+
+            // 2. Reemplaza cualquier otro elemento genérico que desees expandir
+            // Por ejemplo, si tienes textos informativos de accesibilidad cognitiva o locuciones
+            const genericElements = document.querySelectorAll("[data-personalize]");
+            genericElements.forEach(el => {
+              el.textContent = el.textContent.replace("Celeste", newName);
+            });
+          };
+
+          // Verificación inicial al cargar la aplicación
+          const storedName = localStorage.getItem("vidaSalud_userName");
+
+          if (storedName) {
+            // Si ya existe en memoria, aplicamos el cambio directo sin molestar
+            updateGreetingNames(storedName);
+          } else {
+            // Si no existe, activamos visualmente nuestro modal premium
+            modal.classList.add("active");
+            modal.setAttribute("aria-hidden", "false");
+            nameInput.focus(); // Foco automático para navegación por teclado
+          }
+
+          // Guardar y aplicar el nombre ingresado
+          const handleSaveName = () => {
+            const trimmedName = nameInput.value.trim();
+            
+            // Si el usuario no escribe nada, le asignamos uno por defecto amigable
+            const finalName = trimmedName || "Invitado"; 
+            
+            localStorage.setItem("vidaSalud_userName", finalName);
+            updateGreetingNames(finalName);
+
+            // Ocultamos el modal con una transición limpia
+            modal.classList.remove("active");
+            modal.setAttribute("aria-hidden", "true");
+
+            // Feedback por voz integrado a tu función existente
+            if (typeof speakText === "function") {
+              speakText(`Bienvenido, ${finalName}`);
+            }
+          };
+
+          // Eventos de activación
+          saveBtn.addEventListener("click", handleSaveName);
+          
+          // Soporte para guardar al presionar "Enter" dentro del input
+          nameInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              handleSaveName();
+            }
+          });
+        });
+
+
     </script>
   </body>
 </html>
