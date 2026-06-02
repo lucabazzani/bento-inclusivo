@@ -705,12 +705,19 @@
         height: 48px;
         background: var(--color-slate-100);
         border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         margin-bottom: 16px;
         color: var(--color-slate-900);
         transition: all 0.3s ease;
+        padding: 0 !important;
+      }
+
+      .fundamento-icon svg {
+      /* Evita que herede alineaciones de texto o comportamientos inline */
+      display: block !important;
+      margin: 0 !important; 
       }
 
       .fundamento-card h3 {
@@ -1703,15 +1710,23 @@
         color: var(--color-hc-fg) !important;
       }
 
-      body.high-contrast .btn-target-safe {
-        background-color: var(--color-hc-bg) !important;
-        color: var(--color-hc-yellow) !important;
+      body.high-contrast .btn-target-safe,
+      body.high-contrast .btn-digital-card,
+      body.high-contrast .btn-telemedicina {
+        background-color: #002b30 !important; /* Un matiz cyan muy oscuro y elegante */
+        color: var(--color-hc-hover) !important;
         border: 2px solid var(--color-hc-yellow) !important;
       }
 
-      body.high-contrast .btn-target-safe:hover {
+      body.high-contrast .btn-target-safe:hover,
+      body.high-contrast .btn-target-safe:focus,
+      body.high-contrast .btn-digital-card:hover,
+      body.high-contrast .btn-digital-card:focus,
+      body.high-contrast .btn-telemedicina:hover,
+      body.high-contrast .btn-telemedicina:focus {
         background-color: var(--color-hc-hover) !important;
-        color: #000 !important;
+        color: #000000 !important;
+        border-color: var(--color-hc-yellow) !important;
       }
 
       body.high-contrast .btn-emergency {
@@ -1725,12 +1740,7 @@
         border-color: #ffffff !important;
       }
 
-      body.high-contrast .btn-digital-card,
-      body.high-contrast .btn-telemedicina {
-        background: #000000 !important;
-        color: var(--color-hc-yellow) !important;
-        border: 2px solid var(--color-hc-yellow) !important;
-      }
+      
 
       body.high-contrast .a11y-floating-trigger {
         background-color: var(--color-hc-neon) !important;
@@ -1838,6 +1848,17 @@
       .inspector-nav-toggle.active {
         background: var(--color-teal);
         color: #ffffff;
+      }
+
+      body.high-contrast .inspector-nav-toggle {
+        background: rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid var(--color-hc-yellow) !important;
+        color: var(--color-hc-fg) !important;
+      }
+
+      body.high-contrast .inspector-nav-toggle.active {
+        background: var(--color-hc-hover) !important;
+        color: #ffffff !important;
       }
 
       /* General Inspector Active Overlays */
@@ -1958,6 +1979,24 @@
         height: auto !important;
       }
 
+      /* =======================================================
+      UNIFICAR TARJETAS DEL INSPECTOR EN ALTO CONTRASTE
+      ======================================================= */
+
+        body.high-contrast .a11y-node-explainer,
+        [data-theme="high-contrast"] .a11y-node-explainer {
+          /* Forzamos fondo negro puro y texto blanco para el máximo ratio de contraste */
+          background: var(--color-hc-hover) !important;
+          color: #ffffff !important;
+          
+          /* Tu amado cyan flúor para mantener la estética cyberpunk en el borde del nodo */
+          border-left: 4px solid #00ffff !important;
+          
+          /* En alto contraste las sombras no se ven bien; usamos un borde fino blanco para separar el modal del fondo */
+          box-shadow: none !important;
+          outline: 1px solid #ffffff !important;
+        }
+
         
         /* =======================================================
           ESTILOS PARA EL MODAL DE BIENVENIDA
@@ -2044,7 +2083,148 @@
           clip: rect(0, 0, 0, 0);
           border: 0;
         }
+
+
+
+          /* =======================================================
+          REDOX COMPLETO DEL DRAWER EN ALTO CONTRASTE (Web & Mobile)
+          ======================================================= */
+
+        /* 1. Forzar fondos negros y textos blancos en ambos drawers */
+        body.high-contrast .a11y-drawer,
+        body.high-contrast .mobile-nav-drawer,
+        [data-theme="high-contrast"] .a11y-drawer,
+        [data-theme="high-contrast"] .mobile-nav-drawer {
+          background: #000000 !important;
+          color: #ffffff !important;
+          outline: 1px solid #ffffff !important;
+        }
+
+        /* 2. El Logo de Accesibilidad (vence el estilo inline violeta) */
+        body.high-contrast .drawer-header h2 svg,
+        [data-theme="high-contrast"] .drawer-header h2 svg {
+          color: #00ffff !important;
+        }
+
+        /* 3. Las barritas decorativas a la izquierda de los títulos H3 */
+        body.high-contrast .drawer-section h3,
+        [data-theme="high-contrast"] .drawer-section h3 {
+          border-left-color: #00ffff !important;
+          color: #ffffff !important;
+        }
+        /* Por si la barrita fuera un pseudoelemento ::before */
+        body.high-contrast .drawer-section h3::before,
+        [data-theme="high-contrast"] .drawer-section h3::before {
+          background-color: #00ffff !important;
+        }
+
+        /* 4. Switches / Sliders (Fondo negro, borde blanco, activo en Cyan) */
+        body.high-contrast .switch-slider,
+        [data-theme="high-contrast"] .switch-slider {
+          background-color: #000000 !important;
+          border: 2px solid #ffffff !important;
+        }
+        /* El circulito interno del slider */
+        body.high-contrast .switch-slider::before,
+        [data-theme="high-contrast"] .switch-slider::before {
+          background-color: #ffffff !important;
+          top: 2px !important;
+        }
+        /* Cuando el slider está activado (Checked) */
+        body.high-contrast input:checked + .switch-slider,
+        [data-theme="high-contrast"] input:checked + .switch-slider {
+          background-color: #00ffff !important;
+          border-color: #00ffff !important;
+        }
+        body.high-contrast input:checked + .switch-slider::before,
+        [data-theme="high-contrast"] input:checked + .switch-slider::before {
+          background-color: #000000 !important;
+        }
+
+        /* 5. Grupo de botones de tamaño de texto (A-, Normal, A+) */
+        body.high-contrast .btn-resize,
+        [data-theme="high-contrast"] .btn-resize {
+          background: #000000 !important;
+          color: #ffffff !important;
+          border: 0.5px solid #ffffff !important;
+        }
+        /* El botón de tamaño que esté activo en ese momento */
+        body.high-contrast .btn-resize.active,
+        [data-theme="high-contrast"] .btn-resize.active {
+          background: #00ffff !important;
+          color: #000000 !important;
+          border-color: #00ffff !important;
+          font-weight: 700 !important;
+        }
       
+        /* =======================================================
+          NORMALIZACIÓN Y SINTONÍA: BENTO CARD & SIDEBAR
+          ======================================================= */
+
+        /* --- 1. SLIDERS DE LA BENTO CARD (.switch-slider-int) --- */
+
+        /* Inactivos: Fondo negro y borde blanco (Quitamos el gris) */
+        body.high-contrast .switch-slider-int,
+        [data-theme="high-contrast"] .switch-slider-int {
+          background-color: #000000 !important;
+          border: 2px solid #ffffff !important;
+        }
+
+        /* Bolita inactiva en blanco + calibración de centrado */
+        body.high-contrast .switch-slider-int::before,
+        [data-theme="high-contrast"] .switch-slider-int::before {
+          background-color: #ffffff !important;
+          top: 2px !important; 
+        }
+
+        /* Activos (Checked): Fondo Cyan */
+        body.high-contrast input:checked + .switch-slider-int,
+        [data-theme="high-contrast"] input:checked + .switch-slider-int {
+          background-color: #00ffff !important;
+          border-color: #00ffff !important;
+        }
+
+        /* Bolita activa en negro */
+        body.high-contrast input:checked + .switch-slider-int::before,
+        [data-theme="high-contrast"] input:checked + .switch-slider-int::before {
+          background-color: #000000 !important;
+        }
+
+
+        /* --- 2. ELIMINAR EL CONTENEDOR GRUESO DEL LATERAL --- */
+
+        /* Forzamos al contenedor del grupo del drawer a ser transparente */
+        body.high-contrast .text-resize-btn-group,
+        [data-theme="high-contrast"] .text-resize-btn-group {
+          background: transparent !important;
+          background-color: transparent !important;
+          padding: 0 !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+
+        /* Aseguramos que los botones individuales del lateral mantengan su estructura limpia */
+        body.high-contrast .btn-resize,
+        [data-theme="high-contrast"] .btn-resize {
+          margin: 0 2px !important; /* Una pequeña separación si antes dependían del contenedor */
+        }
+
+        /* --- 3. ELIMINAR EL CONTENEDOR BLANCO EN LA BENTO CARD --- */
+
+        body.high-contrast .text-resize-btn-group-int,
+        [data-theme="high-contrast"] .text-resize-btn-group-int {
+          background: transparent !important;
+          background-color: transparent !important;
+          padding: 0 !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+
+        /* Margen opcional por si los botones individuales se pegan entre sí al quitar el bloque */
+        body.high-contrast .btn-resize-int,
+        [data-theme="high-contrast"] .btn-resize-int {
+          margin: 0 2px !important;
+        }
 
     </style>
   </head>
@@ -2189,7 +2369,7 @@
       <div class="breadcrumb-row">
         <span>Panel Principal</span>
         <span>/</span>
-        <span class="active">Bienvenida, Celeste</span>
+       <span class="active" data-personalize="true">Bienvenid@, Celeste</span>
       </div>
 
       <div class="bento-grid" id="mainBentoGrid">
@@ -2510,20 +2690,21 @@
           <div>
             <div class="fundamento-icon">
               <svg
-                style="width: 24px; height: 24px"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+                  style="width: 24px; height: 24px"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
               >
-                <path
+              <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"
-                ></path>
+                  d="M4 4h10a6 6 0 016 6v10"
+              ></path>
               </svg>
             </div>
+            
             <h3 id="curvaturaHeading">Radio de Curvatura</h3>
             <p style="margin-top: 8px">
               El uso estricto de esquinas redondeadas a `24px` aporta un
@@ -3607,7 +3788,7 @@
       <div class="mobile-drawer-profile">
         <div class="mobile-profile-avatar">VT</div>
         <div class="mobile-profile-info">
-          <h4 id="mobProfileGreeting">Hola, Celeste 👋</h4>
+          <h4 id="mobProfileGreeting" data-personalize="true">Hola, Celeste 👋</h4>
           <p>Mi Cuenta</p>
         </div>
       </div>
